@@ -21,7 +21,7 @@ function loadGlasses() {
   loader.load('glass.glb', (gltf) => {
     model3D = gltf.scene;
      // Scale down the model if it's too large
-     model3D.scale.set(0.1, 0.1, 0.1);
+     model3D.scale.set(0.05, 0.05, 0.05);   
     scene.add(model3D);
   });
 }
@@ -53,27 +53,32 @@ cameraFeed.start();
 
 // Handle FaceMesh Results and Position Glasses on Face
 function onFaceResults(results) {
-  if (!results.multiFaceLandmarks[0] || !model3D) return;
+    if (!results.multiFaceLandmarks[0] || !model3D) return;
 
-  const landmarks = results.multiFaceLandmarks[0];
+    const landmarks = results.multiFaceLandmarks[0];
   
-  const leftEye = landmarks[133]; // Landmark for left eye
-  const rightEye = landmarks[263]; // Landmark for right eye
-
-  // Calculate average of eye positions
-  const x = (leftEye.x + rightEye.x) / 2;
-  const y = (leftEye.y + rightEye.y) / 2;
-  const z = (leftEye.z + rightEye.z) / 2;
-
-  // Position glasses model based on face landmarks
-  model3D.position.set(
-    (x - 0.5) * 2, // Adjusted horizontal position
-    -(y - 0.5) * 2, // Adjusted vertical position
-    z // Depth position
-  );
-
-  // Render the scene
-  renderer.render(scene, camera);
+    // Get the position of the eyes (left and right)
+    const leftEye = landmarks[33]; // Left eye landmark
+    const rightEye = landmarks[263]; // Right eye landmark
+  
+    // Calculate the average of the eye positions
+    const x = (leftEye.x + rightEye.x) / 2;
+    const y = (leftEye.y + rightEye.y) / 2;
+    const z = (leftEye.z + rightEye.z) / 2;
+  
+    // Apply scaling and positioning based on the landmarks
+    // Position the glasses directly over the eyes, and adjust the z-depth to bring it closer to the face
+    model3D.position.set(
+      (x - 0.5) * 2,       // Adjust the horizontal position (fine-tune this value)
+      -(y - 0.5) * 2,      // Adjust the vertical position (fine-tune this value)
+      z - 0.05            // Adjust z-position to bring glasses closer to the face
+    );
+  
+    // Optionally, rotate the glasses to face the camera or the user's view
+    model3D.rotation.set(0, Math.PI, 0); // Adjust this based on the glasses model orientation
+  
+    // Render the scene
+    renderer.render(scene, camera);
 }
 
 // Start the Three.js scene and load the glasses model
