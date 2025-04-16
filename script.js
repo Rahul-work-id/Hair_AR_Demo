@@ -1,4 +1,5 @@
-
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js";
 const demosSection = document.getElementById("demos");
 const column1 = document.getElementById("video-blend-shapes-column1");
