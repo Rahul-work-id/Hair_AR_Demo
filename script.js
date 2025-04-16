@@ -57,7 +57,7 @@ function onFaceResults(results) {
 
   const landmarks = results.multiFaceLandmarks[0];
   
-  const leftEye = landmarks[33]; // Landmark for left eye
+  const leftEye = landmarks[133]; // Landmark for left eye
   const rightEye = landmarks[263]; // Landmark for right eye
 
   // Calculate average of eye positions
