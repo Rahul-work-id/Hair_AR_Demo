@@ -1,101 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Face AR App</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Face Landmarker</title>
 
-  <!-- Use Three.js and GLTFLoader as ES Modules -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/"
-      }
-    }
-  </script>
-
-  <style>
-    video, canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: auto;
-    }
-
-    #webcamButton {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      z-index: 10;
-    }
-
-    .blend-shapes {
-      position: absolute;
-      top: 70px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 15px;
-      border-radius: 10px;
-      max-height: 80vh;
-      overflow-y: auto;
-      font-family: sans-serif;
-      display: flex;
-      gap: 20px;
-      z-index: 10;
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .blend-shapes-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .blend-shapes-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-      font-size: 14px;
-    }
-  </style>
+  <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <!-- Video Feed -->
-  <video id="webcam" autoplay playsinline muted></video>
+<body>  
 
-  <!-- Three.js canvas -->
-  <canvas id="three-canvas"></canvas>
+  <section id="demos" class="invisible">
 
-  <!-- MediaPipe 2D overlay canvas -->
-  <canvas id="overlay"></canvas>
-
-  <!-- <button id="webcamButton">ENABLE PREDICTIONS</button> Webcam enable button -->
-  
-
-  <!-- Blend Shape Display -->
-  <div class="blend-shapes">
-    <div class="column">
-      <ul class="blend-shapes-list" id="video-blend-shapes-column1"></ul>
+    <div id="liveView" class="videoView">
+      <button id="webcamButton" class="mdc-button mdc-button--raised">
+        <span class="mdc-button__ripple"></span>
+        <span class="mdc-button__label">ENABLE WEBCAM</span>
+      </button>
+      <br>
+      <br>
+      <div style="position: relative;">
+        <video id="webcam" style="position: absolute" autoplay playsinline></video>
+        <canvas class="output_canvas" id="output_canvas" style="position: absolute; left: 0px; top: 0px;"></canvas>
+      </div>
     </div>
-    <div class="column">
-      <ul class="blend-shapes-list" id="video-blend-shapes-column2"></ul>
+    <div class="blend-shapes">
+      <div class="column">
+        <ul class="blend-shapes-list" id="video-blend-shapes-column1"></ul>
+      </div>
+      <div class="column">
+        <ul class="blend-shapes-list" id="video-blend-shapes-column2"></ul>
+      </div>
     </div>
-  </div>
-
-  <!-- MediaPipe Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
-  <!-- Your Custom Script -->
-  <script type="module" src="script.js"></script>
+  </section>
+  <script src="script.js" type="module"></script>
 </body>
 </html>
