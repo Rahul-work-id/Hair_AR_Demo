@@ -93,7 +93,7 @@ loader.load('glass.glb', (gltf) => {
     glass = gltf.scene;
     glass.scale.set(0.5, 0.5, 0.5);
     glass.position.set(0, 0, 1.5);
-glass.rotation.set(0, Math.PI, 0);
+    glass.rotation.set(0, Math.PI, 0);
     const boxHelper = new THREE.BoxHelper(glass, 0xff0000);
 
     scene.add(boxHelper);
@@ -106,11 +106,13 @@ glass.rotation.set(0, Math.PI, 0);
 glass.traverse((child) => {
     if (child.isMesh) {
       child.material.transparent = false;
-      child.material.opacity = 1.0;
+      child.material.opacity = 1;
+      child.material.side = THREE.DoubleSide;
       child.material.depthTest = true;
       child.material.depthWrite = true;
-      child.material.side = THREE.DoubleSide; // In case normals are reversed
     }
+  });
+  
 
 const drawingUtils = new DrawingUtils(canvasCtx);
 let lastVideoTime = -1;
@@ -188,12 +190,13 @@ function drawBlendShapes(el, blendShapes) {
     if (!blendShapes.length) return;
     let html = "";
     blendShapes.forEach(shape => {
-        html += `
-            <li class="blend-shapes-item">
-                <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
-                <span class="blend-shapes-value" style="width: calc(${shape.score * 100}% - 120px)">${shape.score.toFixed(4)}</span>
-            </li>
-        `;
+        htmlMaker += `
+        <li class="blend-shapes-item">
+          <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
+          <span class="blend-shapes-value" style="width: calc(${shape.score * 100}% - 120px)">${shape.score.toFixed(4)}</span>
+        </li>
+      `;
     });
     el.innerHTML = html;
 }
+
