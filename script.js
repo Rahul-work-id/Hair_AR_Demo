@@ -78,15 +78,23 @@ let lastVideoTime = -1;
 let results = undefined;
 const drawingUtils = new DrawingUtils(canvasCtx);
 
+// Update video and canvas size dynamically for responsiveness
 async function predictWebcam() {
     const radio = video.videoHeight / video.videoWidth;
-    video.style.width = videoWidth + "px";
-    video.style.height = videoWidth * radio + "px";
-    canvasElement.style.width = videoWidth + "px";
-    canvasElement.style.height = videoWidth * radio + "px";
-    canvasElement.width = video.videoWidth;
-    canvasElement.height = video.videoHeight;
-    // Now let's start detecting the stream.
+    
+    // Set the width to 100% of the container and adjust height automatically
+    video.style.width = "100%";
+    video.style.height = "auto";
+
+    // Adjust canvas size based on video size
+    const videoContainerWidth = document.getElementById("liveView").clientWidth;
+    const videoHeight = videoContainerWidth * radio;
+
+    canvasElement.style.width = videoContainerWidth + "px";
+    canvasElement.style.height = videoHeight + "px";
+    canvasElement.width = videoContainerWidth;
+    canvasElement.height = videoHeight;
+
     if (runningMode === "IMAGE") {
         runningMode = "VIDEO";
         await faceLandmarker.setOptions({ runningMode: runningMode });
@@ -110,23 +118,21 @@ async function predictWebcam() {
         }
         // console.log(results);
     }
-    
-    const blendShapes = results.faceBlendshapes;
-    // console.log(blendShapes)
 
-    const halfLength = Math.ceil(blendShapes[0].categories.length / 2);    
+    const blendShapes = results.faceBlendshapes;
+    const halfLength = Math.ceil(blendShapes[0].categories.length / 2);
     const column1BlendShapes = blendShapes[0].categories.slice(0, halfLength);
     const column2BlendShapes = blendShapes[0].categories.slice(halfLength);
-    console.log(column1BlendShapes)
 
     drawBlendShapes(column1, column1BlendShapes);
     drawBlendShapes(column2, column2BlendShapes);
 
-    // Call this function again to keep predicting when the browser is ready.
+    // Recursively call this function to keep predicting when the browser is ready
     if (webcamRunning === true) {
         window.requestAnimationFrame(predictWebcam);
     }
 }
+
 
 function drawBlendShapes(el, blendShapes) {
     if (!blendShapes.length) {
