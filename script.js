@@ -17,6 +17,14 @@ const canvasCtx = canvasElement.getContext("2d");
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(0, 1, 1).normalize();
+scene.add(light);
+
+const ambientLight = new THREE.AmbientLight(0x404040); // Optional soft light
+scene.add(ambientLight);
+
 let glass;
 
 const loader = new GLTFLoader();
@@ -84,6 +92,7 @@ loader.load('glass.glb', (gltf) => {
     console.log("Model loaded");
     glass = gltf.scene;
     glass.scale.set(0.5, 0.5, 0.5);
+    glass.position.set(0, 0, -1);
     scene.add(glass);
 }, undefined, (error) => {
     console.error("Error loading model:", error);
@@ -128,6 +137,7 @@ async function predictWebcam() {
             const y = -(point.y - 0.5) * 2;
             const z = -point.z;
             glass.position.set(x, y, z);
+            console.log("Glass position:", glass.position);
         }
     }
 
