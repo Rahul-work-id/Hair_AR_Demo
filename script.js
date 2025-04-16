@@ -4,7 +4,7 @@ import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js
 
 // DOM elements
 const canvas = document.getElementById('canvas');
-const video = document.getElementById('video');
+//const video = document.getElementById('video');
 const column1 = document.getElementById("video-blend-shapes-column1");
 const column2 = document.getElementById("video-blend-shapes-column2");
 
@@ -49,7 +49,7 @@ async function preLoadAssets() {
 
 // Setup Webcam
 const videoElement = document.getElementById("webcam");
-const canvasElement = document.getElementById("output_canvas");
+const canvasElement = document.getElementById("canvas");
 const canvasCtx = canvasElement.getContext("2d");
 
 function enableCam() {
