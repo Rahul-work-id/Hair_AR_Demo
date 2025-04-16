@@ -12,8 +12,8 @@ const overlay = document.getElementById('overlay');
 if (overlay) overlay.style.display = 'none';
 
 // Get screen dimensions once
-const screenWidth = window.innerWidth;
-const screenHeight = window.innerHeight;
+const screenWidth = 640;//window.innerWidth;
+const screenHeight = 480;//window.innerHeight;
 
 // Initialize Three.js Scene
 function initThree() {
