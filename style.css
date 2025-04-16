@@ -1,18 +1,40 @@
 body, html {
     margin: 0;
     overflow: hidden;
+    width: 100vw;
+    height: 100vh;
   }
+  
+  /* Webcam video feed */
   video {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     object-fit: cover;
     z-index: 0;
   }
-  canvas {
+  
+  /* Three.js canvas */
+  canvas#canvas {
     position: absolute;
     top: 0;
     left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 1;
+    pointer-events: none; /* So mouse doesn't get blocked */
+  }
+  
+  /* Overlay canvas for face mesh debug */
+  canvas#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2;
+    pointer-events: none;
   }
   
