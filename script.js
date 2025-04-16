@@ -104,7 +104,7 @@ loader.load('glass.glb', (gltf) => {
     glass.scale.set(1, 1, 1);           // Adjust scale if needed
     scene.add(glass);
   
-    camera.lookAt(model.position);    
+    camera.lookAt(glass.position);    
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
