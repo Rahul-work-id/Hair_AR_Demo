@@ -1,5 +1,4 @@
 
-
 import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js";
 const demosSection = document.getElementById("demos");
 const column1 = document.getElementById("video-blend-shapes-column1");
@@ -32,7 +31,28 @@ preLoadAssets();
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
+
+// Setup three.js
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, videoWidth / (videoWidth * (video.videoHeight / video.videoWidth)), 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(videoWidth, videoWidth * (video.videoHeight / video.videoWidth));
+document.getElementById("liveView").appendChild(renderer.domElement);
+
+// Position camera
+camera.position.z = 2;
+
+// Load glass model
+let glass;
+const loader = new GLTFLoader();
+loader.load('glass.glb', (gltf) => {
+    glass = gltf.scene;
+    glass.scale.set(0.1, 0.1, 0.1); // scale based on your model size
+    scene.add(glass);
+});
+
 // Check if webcam access is supported.
+
 
 function hasGetUserMedia() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -118,7 +138,19 @@ async function predictWebcam() {
         }
         // console.log(results);
     }
-
+    if (results.faceLandmarks && glass) {
+        const landmarks = results.faceLandmarks[0];
+    
+        // Get landmark between eyes (use point 168 for nose bridge)
+        const point = landmarks[168];
+    
+        // Convert normalized coordinates to 3D space for three.js
+        const x = (point.x - 0.5) * 2;
+        const y = -(point.y - 0.5) * 2;
+        const z = -point.z; // z is negative in 3D
+    
+        glass.position.set(x, y, z);
+    }
     const blendShapes = results.faceBlendshapes;
     const halfLength = Math.ceil(blendShapes[0].categories.length / 2);
     const column1BlendShapes = blendShapes[0].categories.slice(0, halfLength);
@@ -126,7 +158,7 @@ async function predictWebcam() {
 
     //drawBlendShapes(column1, column1BlendShapes);
     //drawBlendShapes(column2, column2BlendShapes);
-
+    renderer.render(scene, camera);
     // Recursively call this function to keep predicting when the browser is ready
     if (webcamRunning === true) {
         window.requestAnimationFrame(predictWebcam);
