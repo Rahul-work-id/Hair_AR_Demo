@@ -111,9 +111,12 @@ async function predictWebcam() {
     const nowInMs = Date.now();
     if (lastVideoTime !== video.currentTime) {
         lastVideoTime = video.currentTime;
-        results = faceLandmarker.detectForVideo(video, nowInMs);
+        results = await faceLandmarker.detectForVideo(video, nowInMs);
     }
 
+    if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
+        console.log("Face landmarks updating ✅");
+    }
     // Resize canvas to match video dimensions
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
