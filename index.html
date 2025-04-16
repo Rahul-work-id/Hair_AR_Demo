@@ -14,14 +14,81 @@
       }
     }
   </script>
+
+  <style>
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+    }
+
+    #webcamButton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      z-index: 10;
+    }
+
+    .blend-shapes {
+      position: absolute;
+      top: 70px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      max-height: 80vh;
+      overflow-y: auto;
+      font-family: sans-serif;
+      display: flex;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .blend-shapes-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .blend-shapes-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
   <!-- Video Feed -->
-  <video id="video" autoplay playsinline></video>
+  <video id="webcam" autoplay playsinline muted></video>
 
-  <!-- Canvas for Three.js Rendering -->
+  <!-- Three.js and MediaPipe canvas -->
   <canvas id="canvas"></canvas>
   <canvas id="overlay"></canvas>
+
+  <!-- Webcam enable button -->
+  <button id="webcamButton">ENABLE PREDICTIONS</button>
+
+  <!-- Blend Shape Display -->
+  <div class="blend-shapes">
+    <div class="column">
+      <ul class="blend-shapes-list" id="video-blend-shapes-column1"></ul>
+    </div>
+    <div class="column">
+      <ul class="blend-shapes-list" id="video-blend-shapes-column2"></ul>
+    </div>
+  </div>
+
   <!-- MediaPipe Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
