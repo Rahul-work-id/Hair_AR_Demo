@@ -124,8 +124,8 @@ async function predictWebcam() {
     const column1BlendShapes = blendShapes[0].categories.slice(0, halfLength);
     const column2BlendShapes = blendShapes[0].categories.slice(halfLength);
 
-    drawBlendShapes(column1, column1BlendShapes);
-    drawBlendShapes(column2, column2BlendShapes);
+    //drawBlendShapes(column1, column1BlendShapes);
+    //drawBlendShapes(column2, column2BlendShapes);
 
     // Recursively call this function to keep predicting when the browser is ready
     if (webcamRunning === true) {
