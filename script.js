@@ -25,6 +25,15 @@ scene.add(light);
 const ambientLight = new THREE.AmbientLight(0x404040); // Optional soft light
 scene.add(ambientLight);
 
+// Set up camera
+camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 2;
+
 let glass;
 
 const loader = new GLTFLoader();
@@ -73,8 +82,8 @@ function enableCam() {
         video.addEventListener("loadeddata", () => {
             // Recalculate camera and renderer when video is loaded
             const aspectRatio = video.videoWidth / video.videoHeight;
-            camera.aspect = aspectRatio;
-            camera.updateProjectionMatrix();
+            //camera.aspect = aspectRatio;
+            //camera.updateProjectionMatrix();
 
             renderer.setSize(video.videoWidth, video.videoHeight);
             canvasElement.width = video.videoWidth;
@@ -82,7 +91,7 @@ function enableCam() {
             video.width = video.videoWidth;
             video.height = video.videoHeight;
 
-            camera.position.z = 2;
+            //camera.position.z = 2;
             predictWebcam();
         });
     });
@@ -91,14 +100,11 @@ function enableCam() {
 loader.load('glass.glb', (gltf) => {
     console.log("Model loaded");
     glass = gltf.scene;
-    glass.scale.set(0.5, 0.5, 0.5);
-    glass.position.set(0, 0, 1.5);
-    glass.rotation.set(0, Math.PI, 0);
-    const boxHelper = new THREE.BoxHelper(glass, 0xff0000);
-
-    scene.add(boxHelper);
+    glass.position.set(0, 0, 0);         // Center of scene
+    glass.scale.set(1, 1, 1);           // Adjust scale if needed
     scene.add(glass);
-    camera.lookAt(glass.position);
+  
+    camera.lookAt(model.position);    
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
@@ -173,10 +179,11 @@ async function predictWebcam() {
     renderer.render(scene, camera);
 
     if (webcamRunning) {
+        renderer.render(scene, camera);
         window.requestAnimationFrame(predictWebcam);
     }
 }
-
+renderer.render(scene, camera);
 function drawBlendShapes(el, blendShapes) {
     if (!blendShapes.length) return;
     let html = "";
