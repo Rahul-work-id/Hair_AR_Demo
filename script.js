@@ -91,7 +91,7 @@ function enableCam() {
 loader.load('glass.glb', (gltf) => {
     console.log("Model loaded");
     glass = gltf.scene;
-    glass.scale.set(0.5, 0.5, 0.5);
+    glass.scale.set(0.05, 0.05, 0.05);
     glass.position.set(0, 0, -1);
     scene.add(glass);
 }, undefined, (error) => {
@@ -133,12 +133,20 @@ async function predictWebcam() {
         // Glass positioning
         if (glass) {
             const point = results.faceLandmarks[0][168];
+        
+            // Convert normalized screen space (0–1) to clip space (-1 to 1)
             const x = (point.x - 0.5) * 2;
             const y = -(point.y - 0.5) * 2;
-            const z = -point.z;
-            glass.position.set(x, y, z);
+            const z = -point.z; // Already in some depth scale
+        
+            // Convert to 3D world space using unproject
+            const vector = new THREE.Vector3(x, y, z);
+            vector.unproject(camera);
+            glass.position.copy(vector);
+        
             console.log("Glass position:", glass.position);
         }
+        
     }
 
     // Draw blend shapes (Optional)
