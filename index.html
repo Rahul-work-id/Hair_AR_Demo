@@ -4,28 +4,29 @@
   <meta charset="UTF-8" />
   <title>Face AR App</title>
   <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
 
   <!-- Use Three.js and GLTFLoader as ES Modules -->
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@<version>/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@<version>/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/"
       }
     }
-    </script>
+  </script>
+</head>
+<body>
+  <!-- Video Feed -->
+  <video id="video" autoplay playsinline></video>
 
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
+  <!-- Canvas for Three.js Rendering -->
+  <canvas id="canvas"></canvas>
 
   <!-- MediaPipe Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
+  <!-- Your Custom Script -->
   <script src="script.js"></script>
 </body>
 </html>
