@@ -103,15 +103,6 @@ loader.load('glass.glb', (gltf) => {
     console.error("Error loading model:", error);
 });
 
-glass.traverse((child) => {
-    if (child.isMesh) {
-      child.material.transparent = false;
-      child.material.opacity = 1;
-      child.material.side = THREE.DoubleSide;
-      child.material.depthTest = true;
-      child.material.depthWrite = true;
-    }
-  });
   
 
 const drawingUtils = new DrawingUtils(canvasCtx);
