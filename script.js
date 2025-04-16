@@ -20,6 +20,8 @@ function loadGlasses() {
   const loader = new GLTFLoader();
   loader.load('glass.glb', (gltf) => {
     model3D = gltf.scene;
+     // Scale down the model if it's too large
+     model3D.scale.set(0.1, 0.1, 0.1);
     scene.add(model3D);
   });
 }
