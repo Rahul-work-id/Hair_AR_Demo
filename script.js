@@ -1,16 +1,28 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js";
+
 const demosSection = document.getElementById("demos");
 const column1 = document.getElementById("video-blend-shapes-column1");
 const column2 = document.getElementById("video-blend-shapes-column2");
+
 let faceLandmarker;
 let runningMode = "IMAGE";
-let enableWebcamButton;
 let webcamRunning = false;
 const videoWidth = 480;
-// Preload :
-async function preLoadAssets() {    
+
+const video = document.getElementById("webcam");
+const canvasElement = document.getElementById("output_canvas");
+const canvasCtx = canvasElement.getContext("2d");
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+let glass;
+
+const loader = new GLTFLoader();
+document.getElementById("liveView").appendChild(renderer.domElement);
+
+async function preLoadAssets() {
     const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
     faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
         baseOptions: {
@@ -23,162 +35,129 @@ async function preLoadAssets() {
     });
     demosSection.classList.remove("invisible");
 }
+
 preLoadAssets();
-
-/********************************************************************
- Continuously grab image from webcam stream and detect it.
-********************************************************************/
-
-const video = document.getElementById("webcam");
-const canvasElement = document.getElementById("output_canvas");
-const canvasCtx = canvasElement.getContext("2d");
-
-// Setup three.js
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, videoWidth / (videoWidth * (video.videoHeight / video.videoWidth)), 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ alpha: true });
-renderer.setSize(videoWidth, videoWidth * (video.videoHeight / video.videoWidth));
-document.getElementById("liveView").appendChild(renderer.domElement);
-
-// Position camera
-camera.position.z = 2;
-
-// Load glass model
-let glass;
-const loader = new GLTFLoader();
-loader.load('glass.glb', (gltf) => {
-    glass = gltf.scene;
-    glass.scale.set(0.1, 0.1, 0.1); // scale based on your model size
-    scene.add(glass);
-});
-
-// Check if webcam access is supported.
-
 
 function hasGetUserMedia() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 
-// If webcam supported, add event listener to button for when user
-// wants to activate it.
-
 if (hasGetUserMedia()) {
-    enableWebcamButton = document.getElementById("webcamButton");
+    const enableWebcamButton = document.getElementById("webcamButton");
     enableWebcamButton.addEventListener("click", enableCam);
-}
-else {
+} else {
     console.warn("getUserMedia() is not supported by your browser");
 }
 
-// Enable the live webcam view and start detection.
-
-function enableCam(event) {
+function enableCam() {
     if (!faceLandmarker) {
         console.log("Wait! faceLandmarker not loaded yet.");
         return;
     }
-    if (webcamRunning === true) {
-        webcamRunning = false;
-        enableWebcamButton.innerText = "ENABLE PREDICTIONS";
-    }
-    else {
-        webcamRunning = true;
-        enableWebcamButton.innerText = "DISABLE PREDICTIONS";
-    }
-    // getUsermedia parameters.
-    const constraints = {
-        video: true
-    };
-    // Activate the webcam stream.
-    navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+
+    webcamRunning = !webcamRunning;
+    const btn = document.getElementById("webcamButton");
+    btn.innerText = webcamRunning ? "DISABLE PREDICTIONS" : "ENABLE PREDICTIONS";
+
+    const constraints = { video: true };
+    navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
         video.srcObject = stream;
-        video.addEventListener("loadeddata", predictWebcam);
+        video.addEventListener("loadeddata", () => {
+            // Recalculate camera and renderer when video is loaded
+            const aspectRatio = video.videoWidth / video.videoHeight;
+            camera.aspect = aspectRatio;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(video.videoWidth, video.videoHeight);
+            canvasElement.width = video.videoWidth;
+            canvasElement.height = video.videoHeight;
+            video.width = video.videoWidth;
+            video.height = video.videoHeight;
+
+            camera.position.z = 2;
+            predictWebcam();
+        });
     });
 }
+
+loader.load('glass.glb', (gltf) => {
+    console.log("Model loaded");
+    glass = gltf.scene;
+    glass.scale.set(0.5, 0.5, 0.5);
+    scene.add(glass);
+}, undefined, (error) => {
+    console.error("Error loading model:", error);
+});
+
+const drawingUtils = new DrawingUtils(canvasCtx);
 let lastVideoTime = -1;
 let results = undefined;
-const drawingUtils = new DrawingUtils(canvasCtx);
 
-// Update video and canvas size dynamically for responsiveness
 async function predictWebcam() {
-    const radio = video.videoHeight / video.videoWidth;
-    
-    // Set the width to 100% of the container and adjust height automatically
-    video.style.width = "100%";
-    video.style.height = "auto";
-
-    // Adjust canvas size based on video size
-    const videoContainerWidth = document.getElementById("liveView").clientWidth;
-    const videoHeight = videoContainerWidth * radio;
-
-    canvasElement.style.width = videoContainerWidth + "px";
-    canvasElement.style.height = videoHeight + "px";
-    canvasElement.width = videoContainerWidth;
-    canvasElement.height = videoHeight;
-
     if (runningMode === "IMAGE") {
         runningMode = "VIDEO";
-        await faceLandmarker.setOptions({ runningMode: runningMode });
+        await faceLandmarker.setOptions({ runningMode });
     }
-    let nowInMs = Date.now();
+
+    const nowInMs = Date.now();
     if (lastVideoTime !== video.currentTime) {
         lastVideoTime = video.currentTime;
         results = faceLandmarker.detectForVideo(video, nowInMs);
     }
+
+    // Resize canvas to match video dimensions
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
     if (results.faceLandmarks) {
         for (const landmarks of results.faceLandmarks) {
             drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#FF3030" , lineWidth: 1});
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW, { color: "#FF3030" , lineWidth: 1});
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#30FF30" , lineWidth: 1});
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW, { color: "#30FF30" , lineWidth: 1});
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#FF3030", lineWidth: 1 });
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#30FF30", lineWidth: 1 });
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW, { color: "#30FF30", lineWidth: 1 });
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW, { color: "#FF3030", lineWidth: 1 });
             drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, { color: "#E0E0E0", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#E0E0E0" , lineWidth: 1});
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS, { color: "#FF3030" , lineWidth: 1});
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS, { color: "#30FF30" , lineWidth: 1});
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#E0E0E0", lineWidth: 1 });
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS, { color: "#30FF30", lineWidth: 1 });
+            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS, { color: "#FF3030", lineWidth: 1 });
         }
-        // console.log(results);
-    }
-    if (results.faceLandmarks && glass) {
-        const landmarks = results.faceLandmarks[0];
-    
-        // Get landmark between eyes (use point 168 for nose bridge)
-        const point = landmarks[168];
-    
-        // Convert normalized coordinates to 3D space for three.js
-        const x = (point.x - 0.5) * 2;
-        const y = -(point.y - 0.5) * 2;
-        const z = -point.z; // z is negative in 3D
-    
-        glass.position.set(x, y, z);
-    }
-    const blendShapes = results.faceBlendshapes;
-    const halfLength = Math.ceil(blendShapes[0].categories.length / 2);
-    const column1BlendShapes = blendShapes[0].categories.slice(0, halfLength);
-    const column2BlendShapes = blendShapes[0].categories.slice(halfLength);
 
-    //drawBlendShapes(column1, column1BlendShapes);
-    //drawBlendShapes(column2, column2BlendShapes);
+        // Glass positioning
+        if (glass) {
+            const point = results.faceLandmarks[0][168];
+            const x = (point.x - 0.5) * 2;
+            const y = -(point.y - 0.5) * 2;
+            const z = -point.z;
+            glass.position.set(x, y, z);
+        }
+    }
+
+    // Draw blend shapes (Optional)
+    if (results.faceBlendshapes) {
+        const blendShapes = results.faceBlendshapes[0].categories;
+        const halfLength = Math.ceil(blendShapes.length / 2);
+        const column1Blend = blendShapes.slice(0, halfLength);
+        const column2Blend = blendShapes.slice(halfLength);
+        // drawBlendShapes(column1, column1Blend);
+        // drawBlendShapes(column2, column2Blend);
+    }
+
     renderer.render(scene, camera);
-    // Recursively call this function to keep predicting when the browser is ready
-    if (webcamRunning === true) {
+
+    if (webcamRunning) {
         window.requestAnimationFrame(predictWebcam);
     }
 }
 
-
 function drawBlendShapes(el, blendShapes) {
-    if (!blendShapes.length) {
-      return;
-    }
-    let htmlMaker = "";
-    blendShapes.map((shape) => {
-      htmlMaker += `
-        <li class="blend-shapes-item">
-          <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
-          <span class="blend-shapes-value" style="width: calc(${shape.score * 100}% - 120px)">${shape.score.toFixed(4)}</span>
-        </li>
-      `;
+    if (!blendShapes.length) return;
+    let html = "";
+    blendShapes.forEach(shape => {
+        html += `
+            <li class="blend-shapes-item">
+                <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
+                <span class="blend-shapes-value" style="width: calc(${shape.score * 100}% - 120px)">${shape.score.toFixed(4)}</span>
+            </li>
+        `;
     });
-    el.innerHTML = htmlMaker;
-  }
+    el.innerHTML = html;
+}
