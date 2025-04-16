@@ -6,8 +6,10 @@ let pointCloud, pointGeometry, pointMaterial;
 
 const canvas = document.getElementById('canvas');
 const video = document.getElementById('video');
+
+// Remove overlay
 const overlay = document.getElementById('overlay');
-const overlayCtx = overlay.getContext('2d');
+if (overlay) overlay.style.display = 'none';
 
 // Initialize Three.js Scene
 function initThree() {
@@ -18,9 +20,6 @@ function initThree() {
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-
-  overlay.width = window.innerWidth;
-  overlay.height = window.innerHeight;
 
   // Point cloud setup
   const pointCount = 468;
@@ -68,39 +67,21 @@ const cameraFeed = new Camera(video, {
 
 cameraFeed.start();
 
-// Draw face mesh points correctly scaled
-function drawFaceMesh(landmarks) {
-  overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-  overlayCtx.save();
-  overlayCtx.scale(overlay.width, overlay.height);
-  overlayCtx.fillStyle = 'cyan';
-
-  for (let i = 0; i < landmarks.length; i++) {
-    const pt = landmarks[i];
-    overlayCtx.beginPath();
-    overlayCtx.arc(pt.x, pt.y, 0.003, 0, 2 * Math.PI);
-    overlayCtx.fill();
-  }
-
-  overlayCtx.restore();
-}
-
 // Handle FaceMesh Results and Position Glasses on Face
 function onFaceResults(results) {
   if (!results.multiFaceLandmarks[0]) return;
 
   const landmarks = results.multiFaceLandmarks[0];
-  drawFaceMesh(landmarks);
 
-  // 🎯 Update Point Cloud
+  // 🎯 Update 3D Point Cloud
   const positionsAttr = pointGeometry.getAttribute('position');
   for (let i = 0; i < landmarks.length; i++) {
     const lm = landmarks[i];
     positionsAttr.setXYZ(
       i,
-      (lm.x - 0.5) * 2,    // X (centered)
-      -(lm.y - 0.5) * 2,   // Y (flipped for WebGL)
-      lm.z - 0.1           // Z (depth, tweak as needed)
+      (lm.x - 0.5) * 2,
+      -(lm.y - 0.5) * 2,
+      lm.z - 0.1
     );
   }
   positionsAttr.needsUpdate = true;
@@ -109,7 +90,6 @@ function onFaceResults(results) {
   if (model3D) {
     const leftEye = landmarks[33];
     const rightEye = landmarks[263];
-
     const x = (leftEye.x + rightEye.x) / 2;
     const y = (leftEye.y + rightEye.y) / 2;
     const z = (leftEye.z + rightEye.z) / 2;
