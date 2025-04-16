@@ -51,27 +51,29 @@ async function preLoadAssets() {
   });
 }
 
-// Setup Webcam
+// Setup Webcam and start prediction
 function enableCam() {
   if (!faceLandmarker) {
     console.log("FaceLandmarker not loaded yet.");
     return;
   }
-  if (webcamRunning) {
-    webcamRunning = false;
-  } else {
-    webcamRunning = true;
-  }
 
   const constraints = { video: true };
   navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
     videoElement.srcObject = stream;
-    videoElement.addEventListener("loadeddata", predictWebcam);
+    videoElement.addEventListener("loadeddata", () => {
+      webcamRunning = true;
+      predictWebcam();  // Start predictions as soon as the webcam feed is ready
+    });
+  }).catch((error) => {
+    console.error("Error accessing webcam: ", error);
   });
 }
 
 // Predict on Webcam Feed
 async function predictWebcam() {
+  if (!webcamRunning) return;
+
   const results = await faceLandmarker.detectForVideo(videoElement, Date.now());
 
   if (results.faceLandmarks) {
@@ -99,10 +101,8 @@ async function predictWebcam() {
   drawBlendShapes(column1, column1BlendShapes);
   drawBlendShapes(column2, column2BlendShapes);
 
-  // Continuously call predictWebcam when webcam is running
-  if (webcamRunning) {
-    window.requestAnimationFrame(predictWebcam);
-  }
+  // Keep predicting continuously
+  window.requestAnimationFrame(predictWebcam);
 }
 
 // Update Glasses Position Based on Face Landmarks
@@ -139,3 +139,4 @@ function drawBlendShapes(el, blendShapes) {
 initThree();
 loadGlasses();
 preLoadAssets();
+enableCam();  // Start webcam and predictions immediately
