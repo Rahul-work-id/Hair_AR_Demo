@@ -91,12 +91,26 @@ function enableCam() {
 loader.load('glass.glb', (gltf) => {
     console.log("Model loaded");
     glass = gltf.scene;
-    glass.scale.set(0.05, 0.05, 0.05);
-    glass.position.set(0, 0, -1);
+    glass.scale.set(0.5, 0.5, 0.5);
+    glass.position.set(0, 0, 1.5);
+glass.rotation.set(0, Math.PI, 0);
+    const boxHelper = new THREE.BoxHelper(glass, 0xff0000);
+
+    scene.add(boxHelper);
     scene.add(glass);
+    camera.lookAt(glass.position);
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
+
+glass.traverse((child) => {
+    if (child.isMesh) {
+      child.material.transparent = false;
+      child.material.opacity = 1.0;
+      child.material.depthTest = true;
+      child.material.depthWrite = true;
+      child.material.side = THREE.DoubleSide; // In case normals are reversed
+    }
 
 const drawingUtils = new DrawingUtils(canvasCtx);
 let lastVideoTime = -1;
@@ -134,21 +148,22 @@ async function predictWebcam() {
         }
 
         // Glass positioning
-        if (glass) {
-            const point = results.faceLandmarks[0][168];
+        //---------------------------------------------------------
+        // if (glass) {
+        //     const point = results.faceLandmarks[0][168];
         
-            // Convert normalized screen space (0–1) to clip space (-1 to 1)
-            const x = (point.x - 0.5) * 2;
-            const y = -(point.y - 0.5) * 2;
-            const z = -point.z; // Already in some depth scale
+        //     // Convert normalized screen space (0–1) to clip space (-1 to 1)
+        //     const x = (point.x - 0.5) * 2;
+        //     const y = -(point.y - 0.5) * 2;
+        //     const z = -point.z; // Already in some depth scale
         
-            // Convert to 3D world space using unproject
-            const vector = new THREE.Vector3(x, y, z);
-            vector.unproject(camera);
-            glass.position.copy(vector);
+        //     // Convert to 3D world space using unproject
+        //     const vector = new THREE.Vector3(x, y, z);
+        //     vector.unproject(camera);
+        //     glass.position.copy(vector);
         
-            console.log("Glass position:", glass.position);
-        }
+        //     console.log("Glass position:", glass.position);
+        // }
         
     }
 
