@@ -3,8 +3,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js";
 
 // DOM elements
-const canvas = document.getElementById('canvas');
-//const video = document.getElementById('video');
+const videoElement = document.getElementById("webcam");
+const overlayCanvas = document.getElementById("overlay");
+const overlayCtx = overlayCanvas.getContext("2d");
+const threeCanvas = document.getElementById("three-canvas");
+
+// UI elements for blend shapes
 const column1 = document.getElementById("video-blend-shapes-column1");
 const column2 = document.getElementById("video-blend-shapes-column2");
 
@@ -18,7 +22,7 @@ function initThree() {
   camera = new THREE.PerspectiveCamera(75, 480 / 640, 0.1, 1000);
   camera.position.z = 2;
 
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+  renderer = new THREE.WebGLRenderer({ canvas: threeCanvas, alpha: true });
   renderer.setSize(480, 640);
   renderer.setPixelRatio(window.devicePixelRatio);
 }
@@ -48,10 +52,6 @@ async function preLoadAssets() {
 }
 
 // Setup Webcam
-const videoElement = document.getElementById("webcam");
-const canvasElement = document.getElementById("canvas");
-const canvasCtx = canvasElement.getContext("2d");
-
 function enableCam() {
   if (!faceLandmarker) {
     console.log("FaceLandmarker not loaded yet.");
@@ -76,8 +76,8 @@ async function predictWebcam() {
 
   if (results.faceLandmarks) {
     for (const landmarks of results.faceLandmarks) {
-      // Drawing Face Landmarks
-      const drawingUtils = new DrawingUtils(canvasCtx);
+      // Drawing Face Landmarks on MediaPipe canvas
+      const drawingUtils = new DrawingUtils(overlayCtx);
       drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
 
       // Glasses position from face landmarks
