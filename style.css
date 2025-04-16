@@ -3,46 +3,21 @@ body, html {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
-  }
+}
 
-  #webcam {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* to allow interaction with the video and 3D canvas */
-  }
-  #three-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-  
-  /* Webcam video feed */
-  video {
+/* Webcam video feed */
+#webcam {
     position: absolute;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     object-fit: cover;
-    z-index: 0;
-  }
-  
-  /* Three.js canvas */
-  canvas#three-canvas {
+    z-index: 0; /* Ensures video is behind the canvas */
+}
+
+/* Three.js canvas */
+canvas#three-canvas { /* Make sure the ID is correct */
     position: absolute;
     top: 0;
     left: 0;
@@ -50,10 +25,10 @@ body, html {
     height: 100vh;
     z-index: 1;
     pointer-events: none; /* So mouse doesn't get blocked */
-  }
-  
-  /* Overlay canvas for face mesh debug */
-  canvas#overlay {
+}
+
+/* Overlay canvas for face mesh debug */
+canvas#overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -61,5 +36,4 @@ body, html {
     height: 100vh;
     z-index: 2;
     pointer-events: none;
-  }
-  
+}
