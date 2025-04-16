@@ -11,14 +11,18 @@ const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 if (overlay) overlay.style.display = 'none';
 
+// Get screen dimensions once
+const screenWidth = window.innerWidth;
+const screenHeight = window.innerHeight;
+
 // Initialize Three.js Scene
 function initThree() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
   camera.position.z = 2;
 
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(screenWidth, screenHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
 
   // Point cloud setup
@@ -30,8 +34,8 @@ function initThree() {
   pointCloud = new THREE.Points(pointGeometry, pointMaterial);
   scene.add(pointCloud);
 
-  // Fix orientation of entire point cloud if needed
-  pointCloud.rotation.y = Math.PI; // optional: mirror around Y if required
+  // Flip point cloud horizontally (mirror webcam)
+  pointCloud.rotation.y = Math.PI;
 }
 
 // Load Glasses Model
@@ -63,8 +67,8 @@ const cameraFeed = new Camera(video, {
   onFrame: async () => {
     await faceMesh.send({ image: video });
   },
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: screenWidth,
+  height: screenHeight,
 });
 
 cameraFeed.start();
@@ -97,12 +101,11 @@ function onFaceResults(results) {
 
   // Update glasses position and orientation
   if (model3D) {
-    // Center model at the origin of the point cloud
     model3D.position.set(0, 0, 0);
 
     // Compute look direction from eyes
-    const leftEye = landmarks[33];     // outer left eye
-    const rightEye = landmarks[263];   // outer right eye
+    const leftEye = landmarks[33];
+    const rightEye = landmarks[263];
 
     const eyeDir = new THREE.Vector3(
       -(rightEye.x - leftEye.x),
