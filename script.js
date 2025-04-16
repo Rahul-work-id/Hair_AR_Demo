@@ -1,28 +1,29 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FaceLandmarker, FilesetResolver, DrawingUtils } from "./tasks-vision.js";
+
+// DOM elements
+const canvas = document.getElementById('canvas');
+const video = document.getElementById('video');
+const column1 = document.getElementById("video-blend-shapes-column1");
+const column2 = document.getElementById("video-blend-shapes-column2");
 
 let scene, camera, renderer, model3D;
+let faceLandmarker;
+let webcamRunning = false;
 
-const canvas = document.getElementById('canvas');
-const video = document.getElementById('webcam');
-
-// Remove overlay
-const overlay = document.getElementById('overlay');
-if (overlay) overlay.style.display = 'none';
-
-const screenWidth = 480;
-const screenHeight = 640;
-
+// Initialize Three.js
 function initThree() {
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, screenWidth / screenHeight, 0.1, 1000);
+  camera = new THREE.PerspectiveCamera(75, 480 / 640, 0.1, 1000);
   camera.position.z = 2;
 
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-  renderer.setSize(screenWidth, screenHeight);
+  renderer.setSize(480, 640);
   renderer.setPixelRatio(window.devicePixelRatio);
 }
 
+// Load Glasses Model
 function loadGlasses() {
   const loader = new GLTFLoader();
   loader.load('glass.glb', (gltf) => {
@@ -32,100 +33,109 @@ function loadGlasses() {
   });
 }
 
-const faceMesh = new FaceMesh({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-});
-
-faceMesh.setOptions({
-  maxNumFaces: 1,
-  refineLandmarks: true,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5,
-});
-
-faceMesh.onResults(onFaceResults);
-
-// UI Elements
-const webcamButton = document.getElementById('webcamButton');
-let cameraFeed = null;
-
-webcamButton.addEventListener('click', () => {
-  webcamButton.style.display = 'none';
-
-  cameraFeed = new Camera(video, {
-    onFrame: async () => {
-      await faceMesh.send({ image: video });
+// Preload MediaPipe Assets
+async function preLoadAssets() {
+  const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+  faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+    baseOptions: {
+      modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+      delegate: "GPU"
     },
-    width: screenWidth,
-    height: screenHeight,
+    outputFaceBlendshapes: true,
+    runningMode: "VIDEO",
+    numFaces: 1
   });
+}
 
-  cameraFeed.start();
-});
+// Setup Webcam
+const videoElement = document.getElementById("webcam");
+const canvasElement = document.getElementById("output_canvas");
+const canvasCtx = canvasElement.getContext("2d");
 
-// DOM References for blend shape columns
-const column1 = document.getElementById('video-blend-shapes-column1');
-const column2 = document.getElementById('video-blend-shapes-column2');
+function enableCam() {
+  if (!faceLandmarker) {
+    console.log("FaceLandmarker not loaded yet.");
+    return;
+  }
+  if (webcamRunning) {
+    webcamRunning = false;
+  } else {
+    webcamRunning = true;
+  }
 
-// Store DOM elements to update values efficiently
-let blendShapeElements = {};
+  const constraints = { video: true };
+  navigator.mediaDevices.getUserMedia(constraints).then(function (stream) {
+    videoElement.srcObject = stream;
+    videoElement.addEventListener("loadeddata", predictWebcam);
+  });
+}
 
-function onFaceResults(results) {
-  if (!results.multiFaceLandmarks[0]) return;
+// Predict on Webcam Feed
+async function predictWebcam() {
+  const results = await faceLandmarker.detectForVideo(videoElement, Date.now());
 
-  const landmarks = results.multiFaceLandmarks[0];
-  const blendShapes = results.faceBlendShapes || [];
+  if (results.faceLandmarks) {
+    for (const landmarks of results.faceLandmarks) {
+      // Drawing Face Landmarks
+      const drawingUtils = new DrawingUtils(canvasCtx);
+      drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
 
-  // Position glasses model
-  const reference = landmarks[168];
-  const leftEye = landmarks[33];
-  const rightEye = landmarks[263];
+      // Glasses position from face landmarks
+      const reference = landmarks[168]; // Nose bridge
+      const leftEye = landmarks[33];     // Left eye
+      const rightEye = landmarks[263];   // Right eye
 
+      // Calculate position and rotation for glasses model based on face landmarks
+      updateGlassesPosition(reference, leftEye, rightEye);
+    }
+  }
+
+  // BlendShapes for facial expressions
+  const blendShapes = results.faceBlendshapes;
+  const halfLength = Math.ceil(blendShapes[0].categories.length / 2);
+  const column1BlendShapes = blendShapes[0].categories.slice(0, halfLength);
+  const column2BlendShapes = blendShapes[0].categories.slice(halfLength);
+
+  drawBlendShapes(column1, column1BlendShapes);
+  drawBlendShapes(column2, column2BlendShapes);
+
+  // Continuously call predictWebcam when webcam is running
+  if (webcamRunning) {
+    window.requestAnimationFrame(predictWebcam);
+  }
+}
+
+// Update Glasses Position Based on Face Landmarks
+function updateGlassesPosition(reference, leftEye, rightEye) {
   if (model3D) {
-    model3D.position.set(0, 0, 0);
+    // Update position (adjust the Z offset as needed)
+    model3D.position.set(reference.x - 0.1, reference.y, reference.z + 0.2);
 
-    const eyeDir = new THREE.Vector3(
-      -(rightEye.x - leftEye.x),
-      -(rightEye.y - leftEye.y),
-      -(rightEye.z - leftEye.z)
-    );
-
+    // Rotate glasses model to align with the face's eye direction
+    const eyeDir = new THREE.Vector3(-(rightEye.x - leftEye.x), -(rightEye.y - leftEye.y), -(rightEye.z - leftEye.z));
     const lookTarget = new THREE.Vector3().copy(eyeDir).normalize();
     const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), lookTarget);
     model3D.setRotationFromQuaternion(quaternion);
   }
-
-  updateBlendShapeUI(blendShapes);
-  renderer.render(scene, camera);
 }
 
-function updateBlendShapeUI(blendShapes) {
+// Drawing Blend Shapes
+function drawBlendShapes(el, blendShapes) {
   if (!blendShapes.length) return;
 
-  // Reset and repopulate once if blendShapeElements is empty
-  if (Object.keys(blendShapeElements).length === 0) {
-    column1.innerHTML = '';
-    column2.innerHTML = '';
-
-    blendShapes.forEach((shape, index) => {
-      const li = document.createElement('li');
-      li.className = 'blend-shapes-item';
-      li.textContent = `${shape.categoryName}: 0.00`;
-      const column = index % 2 === 0 ? column1 : column2;
-      column.appendChild(li);
-      blendShapeElements[shape.categoryName] = li;
-    });
-  }
-
-  // Update values
-  for (const shape of blendShapes) {
-    const element = blendShapeElements[shape.categoryName];
-    if (element) {
-      element.textContent = `${shape.categoryName}: ${shape.score.toFixed(2)}`;
-    }
-  }
+  let htmlMaker = "";
+  blendShapes.forEach((shape) => {
+    htmlMaker += `
+      <li class="blend-shapes-item">
+        <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
+        <span class="blend-shapes-value" style="width: calc(${shape.score * 100}% - 120px)">${shape.score.toFixed(4)}</span>
+      </li>
+    `;
+  });
+  el.innerHTML = htmlMaker;
 }
 
-// Initialize
+// Initialize and Start
 initThree();
 loadGlasses();
+preLoadAssets();
