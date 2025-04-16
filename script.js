@@ -27,7 +27,7 @@ function loadGlasses() {
   loader.load('glass.glb', (gltf) => {
     model3D = gltf.scene;
     model3D.scale.set(0.5, 0.5, 0.5);
-    model3D.rotation.set(0, Math.PI, 0); // Fix flipped model
+    model3D.rotation.set(0, -Math.PI, 0); // Fix flipped model
     scene.add(model3D);
   });
 }
