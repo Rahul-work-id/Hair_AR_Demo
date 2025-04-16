@@ -60,7 +60,7 @@ footer {
 .blend-shapes {
     position: relative;
     float: left;
-    width: 48%;
+    width: 100%;
     margin: 2% 1%;
     cursor: pointer;
 }
