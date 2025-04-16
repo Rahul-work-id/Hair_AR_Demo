@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 let scene, camera, renderer, model3D;
-let pointCloud, pointGeometry, pointMaterial;
 
 const canvas = document.getElementById('canvas');
 const video = document.getElementById('video');
@@ -11,9 +10,9 @@ const video = document.getElementById('video');
 const overlay = document.getElementById('overlay');
 if (overlay) overlay.style.display = 'none';
 
-// Get screen dimensions once
-const screenWidth = 480;//window.innerWidth;
-const screenHeight = 640;//window.innerHeight;
+// Get screen dimensions
+const screenWidth = 480;
+const screenHeight = 640;
 
 // Initialize Three.js Scene
 function initThree() {
@@ -24,18 +23,6 @@ function initThree() {
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setSize(screenWidth, screenHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-
-  // Point cloud setup
-  const pointCount = 468;
-  const positions = new Float32Array(pointCount * 3);
-  pointGeometry = new THREE.BufferGeometry();
-  pointGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  pointMaterial = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.01 });
-  pointCloud = new THREE.Points(pointGeometry, pointMaterial);
-  scene.add(pointCloud);
-
-  // Flip point cloud horizontally (mirror webcam)
-  pointCloud.rotation.y = Math.PI;
 }
 
 // Load Glasses Model
@@ -84,20 +71,6 @@ function onFaceResults(results) {
   const offsetX = reference.x;
   const offsetY = reference.y;
   const offsetZ = reference.z;
-
-  // Update face mesh point cloud
-  const positionsAttr = pointGeometry.getAttribute('position');
-  for (let i = 0; i < landmarks.length; i++) {
-    const lm = landmarks[i];
-
-    // Flip X and Z for correct alignment
-    const x = -(lm.x - offsetX) * 2;
-    const y = -(lm.y - offsetY) * 2;
-    const z = -(lm.z - offsetZ) * 2.5;
-
-    positionsAttr.setXYZ(i, x, y, z);
-  }
-  positionsAttr.needsUpdate = true;
 
   // Update glasses position and orientation
   if (model3D) {
