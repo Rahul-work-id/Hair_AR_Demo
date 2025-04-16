@@ -1,11 +1,12 @@
-import * as THREE from 'three'; // Importing Three.js
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; // Importing GLTFLoader
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 let scene, camera, renderer, model3D;
 const canvas = document.getElementById('canvas');
 const video = document.getElementById('video');
-const overlay = document.getElementById('overlay');     // 2D overlay canvas
-const overlayCtx = overlay.getContext('2d');     
+const overlay = document.getElementById('overlay');
+const overlayCtx = overlay.getContext('2d');
+
 // Initialize Three.js Scene
 function initThree() {
   scene = new THREE.Scene();
@@ -14,6 +15,10 @@ function initThree() {
 
   renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  overlay.width = window.innerWidth;
+  overlay.height = window.innerHeight;
 }
 
 // Load Glasses Model
@@ -21,7 +26,8 @@ function loadGlasses() {
   const loader = new GLTFLoader();
   loader.load('glass.glb', (gltf) => {
     model3D = gltf.scene;
-    model3D.scale.set(0.5, 0.5, 0.5); // Scale down the model if it's too large
+    model3D.scale.set(0.5, 0.5, 0.5);
+    model3D.rotation.set(0, Math.PI, 0); // Fix flipped model
     scene.add(model3D);
   });
 }
@@ -51,53 +57,50 @@ const cameraFeed = new Camera(video, {
 
 cameraFeed.start();
 
-// Draw face landmarks as dots
+// Draw face mesh points correctly scaled
 function drawFaceMesh(landmarks) {
-    overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-    overlayCtx.fillStyle = 'cyan';
-  
-    for (let i = 0; i < landmarks.length; i++) {
-      const x = landmarks[i].x * overlay.width;
-      const y = landmarks[i].y * overlay.height;
-      overlayCtx.beginPath();
-      overlayCtx.arc(x, y, 1.5, 0, 2 * Math.PI);
-      overlayCtx.fill();
-    }
+  overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+  overlayCtx.save();
+  overlayCtx.scale(overlay.width, overlay.height); // scale normalized to screen
+  overlayCtx.fillStyle = 'cyan';
+
+  for (let i = 0; i < landmarks.length; i++) {
+    const pt = landmarks[i];
+    overlayCtx.beginPath();
+    overlayCtx.arc(pt.x, pt.y, 0.003, 0, 2 * Math.PI); // size in normalized space
+    overlayCtx.fill();
   }
-  
+
+  overlayCtx.restore();
+}
 
 // Handle FaceMesh Results and Position Glasses on Face
 function onFaceResults(results) {
   if (!results.multiFaceLandmarks[0]) return;
 
   const landmarks = results.multiFaceLandmarks[0];
-  drawFaceMesh(landmarks); // 👈 Draw the 2D face mesh on canvas
+  drawFaceMesh(landmarks);
 
   if (!model3D) return;
 
-  // Get the position of the eyes (left and right)
-  const leftEye = landmarks[33]; // Left eye landmark
-  const rightEye = landmarks[263]; // Right eye landmark
+  // Use eyes and nose bridge to better position the glasses
+  const leftEye = landmarks[33];
+  const rightEye = landmarks[263];
+  const nose = landmarks[168];
 
-  // Calculate the average of the eye positions
   const x = (leftEye.x + rightEye.x) / 2;
   const y = (leftEye.y + rightEye.y) / 2;
   const z = (leftEye.z + rightEye.z) / 2;
 
-  // Position the glasses model
   model3D.position.set(
-    (x - 0.5) * 2,
-    -(y - 0.5) * 2,
-    z - 0.05
+    (x - 0.5) * 2,         // Horizontal centering
+    -(y - 0.5) * 2,        // Vertical flip & centering
+    z - 0.15               // Bring closer to face
   );
 
-  // Rotate the glasses to face forward (adjust if needed)
-  model3D.rotation.set(0, Math.PI, 0);
-
-  // Render the Three.js scene
   renderer.render(scene, camera);
 }
 
-// Start the Three.js scene and load the glasses model
+// Initialize
 initThree();
 loadGlasses();
