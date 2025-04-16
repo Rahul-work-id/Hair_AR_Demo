@@ -15,6 +15,15 @@ const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(video.videoWidth, video.videoHeight);
+renderer.domElement.style.position = "absolute";
+renderer.domElement.style.top = "0";
+renderer.domElement.style.left = "0";
+renderer.domElement.style.zIndex = "3"; // Important - higher than video
+renderer.domElement.style.pointerEvents = "none"; // So you can still click buttons
+
+// Append the renderer above the video
+document.getElementById("liveView").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 //const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 const camera = new THREE.PerspectiveCamera(
