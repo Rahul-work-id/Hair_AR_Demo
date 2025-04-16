@@ -4,7 +4,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'; // Importing GL
 let scene, camera, renderer, model3D;
 const canvas = document.getElementById('canvas');
 const video = document.getElementById('video');
-
+const overlay = document.getElementById('overlay');     // 2D overlay canvas
+const overlayCtx = overlay.getContext('2d');     
 // Initialize Three.js Scene
 function initThree() {
   scene = new THREE.Scene();
@@ -52,19 +53,18 @@ cameraFeed.start();
 
 // Draw face landmarks as dots
 function drawFaceMesh(landmarks) {
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frame
-
-  ctx.fillStyle = 'cyan';
-
-  for (let i = 0; i < landmarks.length; i++) {
-    const x = landmarks[i].x * canvas.width;
-    const y = landmarks[i].y * canvas.height;
-    ctx.beginPath();
-    ctx.arc(x, y, 1.5, 0, 2 * Math.PI);
-    ctx.fill();
+    overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+    overlayCtx.fillStyle = 'cyan';
+  
+    for (let i = 0; i < landmarks.length; i++) {
+      const x = landmarks[i].x * overlay.width;
+      const y = landmarks[i].y * overlay.height;
+      overlayCtx.beginPath();
+      overlayCtx.arc(x, y, 1.5, 0, 2 * Math.PI);
+      overlayCtx.fill();
+    }
   }
-}
+  
 
 // Handle FaceMesh Results and Position Glasses on Face
 function onFaceResults(results) {
