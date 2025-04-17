@@ -82,7 +82,7 @@
         BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
             hat = meshes[0];
             hat.position.z = 1;
-            hat.scaling.set(1, 1, 1);
+            hat.scaling.set(1.25, 1.25, 1.25);
             hat.getChildMeshes().forEach(m => {
                 if (m.material) {
                     m.material.alpha = 1.0;
@@ -156,7 +156,7 @@
         const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 1 }, scene);
 
         //-----------------------------------------occluder-------------------------------------------------
-        const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2 }, scene);
+        const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2.5 }, scene);
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.PBRMaterial("")
