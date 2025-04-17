@@ -158,12 +158,11 @@
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.StandardMaterial("occluderMaterial", scene);
-        occluderMaterial.disableColorWrite = true; // don't draw color
-        occluderMaterial.depthWrite = true;        // write to depth buffer
-        occluderMaterial.alpha = 0;                // fully transparent (for safety, not required)
+        occluderMaterial.alpha = 1.0;                    // Fully opaque to engine
+        occluderMaterial.disableColorWrite = true;       // Don't render color
+        occluderMaterial.forceDepthWrite = true;         // Force writing to depth buffer
+        occluderMaterial.depthFunction = BABYLON.Engine.LESS;
 
-        occluderSphere.material = occluderMaterial;
-        occluderSphere.renderingGroupId = 0;
 
         //------------------------------------------------------------------------------------------------
         // Move to foreground rendering group
@@ -197,11 +196,11 @@
 
                 occluderSphere.position.set(x_oc, y_oc + 0.3, z_oc);
 
-
-
+                occluderSphere.isVisible = true;
+                occluderSphere.renderingGroupId = 0;
                 if (hat) {
                     hat.position.set(x, y + 0.3, z);
-
+                    hat.renderingGroupId = 1;
                     sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
                     const leftEye = landmarks[33];
