@@ -159,50 +159,39 @@ async function predictWebcam() {
         //---------------------------------------------------------
         // Glass positioning & rotation
         if (hat && results.faceLandmarks.length > 0) {
-            const landmarks = results.faceLandmarks[0];
-
-            // Position using landmark #168 (between eyes)
-            const center = landmarks[168];
-            const leftEye = landmarks[33];   // Approx left eye corner
-            const rightEye = landmarks[263]; // Approx right eye corner
-
-            // Flip X like before if needed
-            const mirrorX = (x) => 1.0 - x;
-
-            // Convert the center of the head (usually between the eyes or forehead)
-            const headCenter = new THREE.Vector3(
-                (mirrorX(center.x) - 0.5) * 2,
-                -(center.y - 0.5) * 2,
-                -center.z // Negative Z for perspective unproject
+            const lm = results.faceLandmarks[0];
+            const forehead = lm[10];      // forehead landmark
+            const leftEye  = lm[33];
+            const rightEye = lm[263];
+          
+            // mirror X if your video is mirrored
+            const mirrorX = x => 1.0 - x;
+          
+            // helper to go from normalized landmark → world coords
+            const toWorld = pt => new THREE.Vector3(
+              (mirrorX(pt.x) - 0.5) * 2,
+              -(pt.y - 0.5) * 2,
+              -pt.z
             ).unproject(camera);
-
-            // Optional: Offset the hat slightly above the head
-            const hatOffset = new THREE.Vector3(0, 0.15, 0); // tweak Y value for vertical offset
-            const hatPosition = headCenter.clone().add(hatOffset);
-
-            // Apply position to the hat mesh
-            hat.position.copy(hatPosition);
-
-            // Optional: face the hat toward the camera direction
+          
+            // world positions
+            const headWorld  = toWorld(forehead);
+            const leftWorld  = toWorld(leftEye);
+            const rightWorld = toWorld(rightEye);
+          
+            // eye distance for scale
+            const eyeDist = leftWorld.distanceTo(rightWorld);
+          
+            // position the hat a bit above the forehead, proportional to head size
+            const yOffset = eyeDist * 0.4; 
+            hat.position.copy(headWorld).add(new THREE.Vector3(0, yOffset, 0));
+          
+            // scale the hat to ~60% of eye distance
+            hat.scale.setScalar(eyeDist * 0.6);
+          
+            // optional: keep it facing you
             hat.lookAt(camera.position);
-
-            // Optional: scale the hat based on face size (distance between eyes)
-            const leftVec = new THREE.Vector3(
-                (mirrorX(leftEye.x) - 0.5) * 2,
-                -(leftEye.y - 0.5) * 2,
-                -leftEye.z
-            ).unproject(camera);
-
-            const rightVec = new THREE.Vector3(
-                (mirrorX(rightEye.x) - 0.5) * 2,
-                -(rightEye.y - 0.5) * 2,
-                -rightEye.z
-            ).unproject(camera);
-
-            const eyeDistance = leftVec.distanceTo(rightVec);
-            hat.scale.setScalar(eyeDistance * 2); // You can tweak this multiplier
-
-        }
+          }          
 
     }
 
