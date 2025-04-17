@@ -91,8 +91,8 @@ function enableCam() {
         video.addEventListener("loadeddata", () => {
             // Recalculate camera and renderer when video is loaded
             const aspectRatio = video.videoWidth / video.videoHeight;
-            //camera.aspect = aspectRatio;
-            //camera.updateProjectionMatrix();
+            camera.aspect = aspectRatio;
+            camera.updateProjectionMatrix();
 
             renderer.setSize(video.videoWidth, video.videoHeight);
             canvasElement.width = video.videoWidth;
@@ -100,7 +100,7 @@ function enableCam() {
             video.width = video.videoWidth;
             video.height = video.videoHeight;
 
-            //camera.position.z = 2;
+            camera.position.z = 2;
             predictWebcam();
         });
     });
@@ -110,7 +110,7 @@ loader.load('glass.glb', (gltf) => {
     console.log("Model loaded");
     glass = gltf.scene;
     glass.position.set(0, 0, 0);         // Center of scene
-    glass.scale.set(1, 1, 1);           // Adjust scale if needed
+    glass.scale.set(.5, .5, .5);           // Adjust scale if needed
     scene.add(glass);
   
     camera.lookAt(glass.position);    
@@ -157,21 +157,21 @@ async function predictWebcam() {
 
         // Glass positioning
         //---------------------------------------------------------
-        // if (glass) {
-        //     const point = results.faceLandmarks[0][168];
+        if (glass) {
+            const point = results.faceLandmarks[0][168];
         
-        //     // Convert normalized screen space (0–1) to clip space (-1 to 1)
-        //     const x = (point.x - 0.5) * 2;
-        //     const y = -(point.y - 0.5) * 2;
-        //     const z = -point.z; // Already in some depth scale
+            // Convert normalized screen space (0–1) to clip space (-1 to 1)
+            const x = (point.x - 0.5) * 2;
+            const y = -(point.y - 0.5) * 2;
+            const z = -point.z; // Already in some depth scale
         
-        //     // Convert to 3D world space using unproject
-        //     const vector = new THREE.Vector3(x, y, z);
-        //     vector.unproject(camera);
-        //     glass.position.copy(vector);
+            // Convert to 3D world space using unproject
+            const vector = new THREE.Vector3(x, y, z);
+            vector.unproject(camera);
+            glass.position.copy(vector);
         
-        //     console.log("Glass position:", glass.position);
-        // }
+            console.log("Glass position:", glass.position);
+        }
         
     }
 
