@@ -158,9 +158,9 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------
         if (glass) {
-            const leftEye = landmarks[33];   // normalized x,y,z
-            const rightEye = landmarks[263];
-            const noseBridge = landmarks[168];
+            const leftEye = results.faceLandmarks[33];   // normalized x,y,z
+            const rightEye = results.faceLandmarks[263];
+            const noseBridge = results.faceLandmarks[168];
             
             // Average position between eyes
             const midX = (leftEye.x + rightEye.x) / 2;
