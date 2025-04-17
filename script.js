@@ -193,7 +193,7 @@ async function predictWebcam() {
           
             // 7. Create a yaw‑only quaternion:
             const yawQuat = new THREE.Quaternion().setFromUnitVectors(
-              new THREE.Vector3(1, 0, 0),  // hat’s local “across‑head” +X
+              new THREE.Vector3(-1, 0, 0),  // hat’s local “across‑head” +X
               flatEarVec                   // flattened ear direction
             );
             hat.quaternion.copy(yawQuat);
