@@ -101,7 +101,7 @@ function enableCam() {
             video.width = video.videoWidth;
             video.height = video.videoHeight;
 
-            camera.position.z = 2;
+            camera.position.set(0, 0, 0);
             predictWebcam();
         });
     });
@@ -161,42 +161,43 @@ async function predictWebcam() {
         if (hat &&
             results.facialTransformationMatrixes &&
             results.facialTransformationMatrixes.length > 0) {
-          
-          // 1. Read the raw 3×4 pose (in meters, camera space)
-          const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
-          
-          // 2. Build a 4×4 matrix
-          const m = new THREE.Matrix4().set(
-            raw[0],  raw[1],  raw[2],  raw[3],
-            raw[4],  raw[5],  raw[6],  raw[7],
-            raw[8],  raw[9],  raw[10], raw[11],
-            0,       0,       0,       1
-          );
-        
-          // 3. Offset up by ~15 cm so it sits on your crown
-          const yOffset = 0.15;
-          m.multiply(new THREE.Matrix4().makeTranslation(0, yOffset, 0));
-        
-          // 4. Decompose into position, quaternion, and non‑uniform scale
-          const pos = new THREE.Vector3();
-          const quat = new THREE.Quaternion();
-          const scl = new THREE.Vector3();
-          m.decompose(pos, quat, scl);
-        
-          // 5. Apply to your hat mesh
-          hat.position.copy(pos);
-          hat.quaternion.copy(quat);
-        
-          // 6. Global scale factor (tweak 0.1–0.3 until it looks right)
-          const globalScale = 0.2;
-          hat.scale.set(
-            scl.x * globalScale,
-            scl.y * globalScale,
-            scl.z * globalScale
-          );
+
+            // 1. Pull out the 3×4 pose matrix
+            const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
+
+            // 2. Build a full 4×4 Matrix4
+            const m = new THREE.Matrix4().set(
+                raw[0], raw[1], raw[2], raw[3],
+                raw[4], raw[5], raw[6], raw[7],
+                raw[8], raw[9], raw[10], raw[11],
+                0, 0, 0, 1
+            );
+
+            // 3. Flip Z so +Z (MediaPipe forward) → –Z (Three.js forward)
+            m.multiply(new THREE.Matrix4().makeScale(1, 1, -1));
+
+            // 4. Lift the hat up ~15 cm in face‑space
+            m.multiply(new THREE.Matrix4().makeTranslation(0, 0.15, 0));
+
+            // 5. Decompose into pos/quaternion/scale
+            const pos = new THREE.Vector3();
+            const quat = new THREE.Quaternion();
+            const scl = new THREE.Vector3();
+            m.decompose(pos, quat, scl);
+
+            // 6. Apply to your hat mesh
+            hat.position.copy(pos);
+            hat.quaternion.copy(quat);
+
+            // 7. Finally, a global size tweak so it’s not gigantic
+            const GLOBAL_HAT_SCALE = 0.2;
+            hat.scale.set(scl.x * GLOBAL_HAT_SCALE,
+                scl.y * GLOBAL_HAT_SCALE,
+                scl.z * GLOBAL_HAT_SCALE);
         }
-        
-             
+
+
+
 
     }
 
