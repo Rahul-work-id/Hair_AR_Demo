@@ -158,42 +158,47 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------||||||||||||||||||||||
         // Glass positioning & rotation
-        if (hat &&
-            results.facialTransformationMatrixes &&
-            results.facialTransformationMatrixes.length > 0) {
+        if (hat && results.faceLandmarks) {
 
             // 1. Pull out the 3×4 pose matrix
-            const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
+            // 1. Grab the three key landmarks:
+            const lm = results.faceLandmarks[0];
+            const forehead = lm[10];
+            const leftEar = lm[127];
+            const rightEar = lm[356];
 
-            // 2. Build a full 4×4 Matrix4
-            const m = new THREE.Matrix4().set(
-                raw[0], raw[1], raw[2], raw[3],
-                raw[4], raw[5], raw[6], raw[7],
-                raw[8], raw[9], raw[10], raw[11],
-                0, 0, 0, 1
+            // 2. Helper to convert normalized landmark → world coords
+            function toWorld(pt) {
+                // flip X if your video is mirrored:
+                const x = (1 - pt.x - 0.5) * 2;
+                const y = -(pt.y - 0.5) * 2;
+                const z = -pt.z;
+                return new THREE.Vector3(x, y, z).unproject(camera);
+            }
+
+            // 3. Compute world positions
+            const worldForehead = toWorld(forehead);
+            const worldLeftEar = toWorld(leftEar);
+            const worldRightEar = toWorld(rightEar);
+
+            // 4. Position: forehead + tiny lift (in world units)
+            const headLift = worldLeftEar.distanceTo(worldRightEar) * 0.2;
+            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
+
+            // 5. Scale: ear‑to‑ear width
+            const earDist = worldLeftEar.distanceTo(worldRightEar);
+            hat.scale.setScalar(earDist * 0.8);
+
+            // 6. Rotate: make the hat’s “brim” face the same direction as your ears
+            //    We build a quaternion that aligns the hat’s X‑axis with the ear vector:
+            const earVec = worldRightEar.clone().sub(worldLeftEar).normalize();
+            // assuming the hat’s local +X goes “across” the head:
+            const hatQuat = new THREE.Quaternion().setFromUnitVectors(
+                new THREE.Vector3(1, 0, 0),
+                earVec
             );
+            hat.setRotationFromQuaternion(hatQuat);
 
-            // 3. Flip Z so +Z (MediaPipe forward) → –Z (Three.js forward)
-            m.multiply(new THREE.Matrix4().makeScale(1, 1, -1));
-
-            // 4. Lift the hat up ~15 cm in face‑space
-            m.multiply(new THREE.Matrix4().makeTranslation(0, 0.15, 0));
-
-            // 5. Decompose into pos/quaternion/scale
-            const pos = new THREE.Vector3();
-            const quat = new THREE.Quaternion();
-            const scl = new THREE.Vector3();
-            m.decompose(pos, quat, scl);
-
-            // 6. Apply to your hat mesh
-            hat.position.copy(pos);
-            hat.quaternion.copy(quat);
-
-            // 7. Finally, a global size tweak so it’s not gigantic
-            const GLOBAL_HAT_SCALE = 0.2;
-            hat.scale.set(scl.x * GLOBAL_HAT_SCALE,
-                scl.y * GLOBAL_HAT_SCALE,
-                scl.z * GLOBAL_HAT_SCALE);
         }
 
 
