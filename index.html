@@ -158,9 +158,13 @@
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.StandardMaterial("occluderMaterial", scene);
-        occluderMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0); // red for now
-        occluderMaterial.alpha = 0.5;
+        occluderMaterial.disableColorWrite = true; // don't draw color
+        occluderMaterial.depthWrite = true;        // write to depth buffer
+        occluderMaterial.alpha = 0;                // fully transparent (for safety, not required)
+
         occluderSphere.material = occluderMaterial;
+        occluderSphere.renderingGroupId = 0;
+
         //------------------------------------------------------------------------------------------------
         // Move to foreground rendering group
         occluderSphere.renderingGroupId = 0;
