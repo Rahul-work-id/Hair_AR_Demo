@@ -189,7 +189,8 @@
                 });
 
                 occluder.setEnabled(true);
-                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions, false, false);
+                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions, true);
+                occluder.refreshBoundingInfo();
                 occluder.isVisible = true; // still invisible to the eye but affects depth
 
 
