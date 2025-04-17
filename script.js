@@ -195,23 +195,19 @@ async function predictWebcam() {
                 pitchVec
             );
 
-            // Apply transformations to the hat
-            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
-            hat.scale.setScalar(earDistance * 0.8);
-            hat.quaternion.copy(yawQuat).multiply(pitchQuat); // combine yaw and pitch
 
             // Apply the same transformations to the hair
-            if (hair) {
-                hair.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.9, 0));
-                hair.scale.setScalar(earDistance); // or tweak for your model
 
-                const invertedYawQuat = yawQuat.clone();
-                invertedYawQuat.y *= -1;
-                invertedYawQuat.w *= -1;
+            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.9, 0));
+            hat.scale.setScalar(earDistance); // or tweak for your model
 
-                // Apply combined rotation of yaw and pitch to hair
-                hair.quaternion.copy(invertedYawQuat).multiply(pitchQuat);
-            }
+            const invertedYawQuat = yawQuat.clone();
+            invertedYawQuat.y *= -1;
+            invertedYawQuat.w *= -1;
+
+            // Apply combined rotation of yaw and pitch to hair
+            hat.quaternion.copy(invertedYawQuat).multiply(pitchQuat);
+
 
             // Occluder: Position & scale to match head
             if (faceOccluder) {
