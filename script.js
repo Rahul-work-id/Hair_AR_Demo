@@ -32,7 +32,7 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 );
-camera.position.z = 2;
+camera.position.set(0, 0, 0);
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(0, 1, 1).normalize();
 scene.add(light);
@@ -111,10 +111,9 @@ loader.load('hat.glb', (gltf) => {
     console.log("Model loaded");
     hat = gltf.scene;
     hat.position.set(0, 0, 0);         // Center of scene
-    hat.scale.set(.5, .5, .5);           // Adjust scale if needed
+    hat.scale.set(1, 1, 1);           // Adjust scale if needed
     scene.add(hat);
 
-    camera.lookAt(hat.position);
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
@@ -162,9 +161,11 @@ async function predictWebcam() {
         if (hat &&
             results.facialTransformationMatrixes &&
             results.facialTransformationMatrixes.length > 0) {
-        
+          
+          // 1. Read the raw 3×4 pose (in meters, camera space)
           const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
-        
+          
+          // 2. Build a 4×4 matrix
           const m = new THREE.Matrix4().set(
             raw[0],  raw[1],  raw[2],  raw[3],
             raw[4],  raw[5],  raw[6],  raw[7],
@@ -172,15 +173,29 @@ async function predictWebcam() {
             0,       0,       0,       1
           );
         
-          hat.matrixAutoUpdate = false;
-          hat.matrix.copy(m);
-          hat.matrix.multiply(
-            new THREE.Matrix4().makeTranslation(0, 0.1, 0)
-          );
+          // 3. Offset up by ~15 cm so it sits on your crown
+          const yOffset = 0.15;
+          m.multiply(new THREE.Matrix4().makeTranslation(0, yOffset, 0));
         
-          const scale = 0.2; // tweak for your hat model
-          hat.scale.set(scale, scale, scale);
+          // 4. Decompose into position, quaternion, and non‑uniform scale
+          const pos = new THREE.Vector3();
+          const quat = new THREE.Quaternion();
+          const scl = new THREE.Vector3();
+          m.decompose(pos, quat, scl);
+        
+          // 5. Apply to your hat mesh
+          hat.position.copy(pos);
+          hat.quaternion.copy(quat);
+        
+          // 6. Global scale factor (tweak 0.1–0.3 until it looks right)
+          const globalScale = 0.2;
+          hat.scale.set(
+            scl.x * globalScale,
+            scl.y * globalScale,
+            scl.z * globalScale
+          );
         }
+        
              
 
     }
