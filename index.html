@@ -175,23 +175,58 @@
                 const z = depthZ * 30;  // scale to Babylon units
 
                 if (!occluder) {
-                    const { mesh, faceIndices } = createOccluderMesh(scene);
+                    const faceIndices = [
+                        [10, 338, 297], [10, 297, 332], [10, 332, 284], [10, 284, 251],
+                        [10, 251, 389], [10, 389, 264], [10, 264, 454], [10, 454, 323],
+                        [10, 323, 361], [10, 361, 288]
+                    ];
+                
+                    const positions = [];
+                    const indices = [];
+                    let index = 0;
+                
+                    faceIndices.forEach(tri => {
+                        tri.forEach(i => {
+                            const pt = landmarks[i];
+                            positions.push(-(pt.x - 0.5) * 10, -(pt.y - 0.5) * 10, pt.z * 30);
+                        });
+                        indices.push(index, index + 1, index + 2);
+                        index += 3;
+                    });
+                
+                    const vertexData = new BABYLON.VertexData();
+                    vertexData.positions = positions;
+                    vertexData.indices = indices;
+                
+                    const mesh = new BABYLON.Mesh("occluder", scene);
+                    vertexData.applyToMesh(mesh);
+                
+                    const mat = new BABYLON.StandardMaterial("occluderMat", scene);
+                    mat.alpha = 0.3; // Semi-transparent red for debugging
+                    mat.diffuseColor = new BABYLON.Color3(1, 0, 0);
+                    mat.backFaceCulling = false;
+                    mesh.material = mat;
+                    mesh.renderingGroupId = 0;
+                    mat.wireframe = true;
+
                     occluder = mesh;
                     occluder.faceIndices = faceIndices;
                 }
+                
 
-                const positions = [];
+                const updatedPositions = [];
                 occluder.faceIndices.forEach(tri => {
                     tri.forEach(index => {
                         const pt = landmarks[index];
-                        positions.push(-(pt.x - 0.5) * 10, -(pt.y - 0.5) * 10, pt.z * 30);
+                        updatedPositions.push(-(pt.x - 0.5) * 10, -(pt.y - 0.5) * 10, pt.z * 30);
                     });
                 });
-
+                
                 occluder.setEnabled(true);
-                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions, true);
+                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, updatedPositions, true);
                 occluder.refreshBoundingInfo();
-                occluder.isVisible = true; // still invisible to the eye but affects depth
+                occluder.isVisible = true;
+                
 
 
                 if (hat) {
