@@ -110,6 +110,7 @@
 
                 const x = -(forehead.x - 0.5) * 10;
                 const y = -(forehead.y - 0.5) * 10;
+                const zf = (forehead.z - 0.1) * 10;
 
                 const dx = rightEye.x - leftEye.x;
                 const dy = rightEye.y - leftEye.y;
@@ -120,7 +121,7 @@
                 const z = (baseEyeDist / eyeDist) * 3;
 
                 if (hat) {
-                    hat.position.set(x, y + 0.3, z);
+                    hat.position.set(x, y + 0.3, zf);
 
                     // ✅ Show debug values for Z axis
                     const debugText = `
