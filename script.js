@@ -158,31 +158,34 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------
        // Glass positioning & rotation
-        if (glass && results.faceLandmarks.length > 0) {
-            const landmarks = results.faceLandmarks[0];
-
-            // Position using landmark #168 (between eyes)
-            const center = landmarks[168];
-            const leftEye = landmarks[33];   // Approx left eye corner
-            const rightEye = landmarks[263]; // Approx right eye corner
-
-            // Convert normalized to clip space
-            const centerVec = new THREE.Vector3((center.x - 0.5) * 2, -(center.y - 0.5) * 2, -center.z).unproject(camera);
-            glass.position.copy(centerVec);
-
-            // Approximate face orientation
-            const leftVec = new THREE.Vector3((leftEye.x - 0.5) * 2, -(leftEye.y - 0.5) * 2, -leftEye.z).unproject(camera);
-            const rightVec = new THREE.Vector3((rightEye.x - 0.5) * 2, -(rightEye.y - 0.5) * 2, -rightEye.z).unproject(camera);
-
-            const eyeDirection = new THREE.Vector3().subVectors(rightVec, leftVec).normalize();
-            const up = new THREE.Vector3(0, 1, 0); // assume up
-            const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), eyeDirection);
-            glass.setRotationFromQuaternion(quaternion);
-
-            // Optional scaling based on eye distance
-            const eyeDistance = leftVec.distanceTo(rightVec);
-            glass.scale.setScalar(eyeDistance * 1.2); // tweak multiplier for better fit
+       if (glass && results.faceLandmarks.length > 0) {
+        const landmarks = results.faceLandmarks[0];
+    
+        // Position using landmark #168 (between eyes)
+        const center = landmarks[168];
+        const leftEye = landmarks[33];   // Approx left eye corner
+        const rightEye = landmarks[263]; // Approx right eye corner
+    
+        // Convert normalized to clip space
+        const centerVec = new THREE.Vector3((center.x - 0.5) * 2, -(center.y - 0.5) * 2, -center.z).unproject(camera);
+        glass.position.copy(centerVec);
+    
+        // Approximate face orientation
+        const leftVec = new THREE.Vector3((leftEye.x - 0.5) * 2, -(leftEye.y - 0.5) * 2, -leftEye.z).unproject(camera);
+        const rightVec = new THREE.Vector3((rightEye.x - 0.5) * 2, -(rightEye.y - 0.5) * 2, -rightEye.z).unproject(camera);
+    
+        // Compute roll (head tilt) from eye line
+        const eyeVector = new THREE.Vector2(rightEye.x - leftEye.x, rightEye.y - leftEye.y);
+        const roll = Math.atan2(eyeVector.y, eyeVector.x); // in radians
+    
+        // Set rotation with tilt (around Z-axis)
+        glass.rotation.set(0, 0, -roll); // flip sign to correct mirror effect
+    
+        // Optional scaling based on eye distance
+        const eyeDistance = leftVec.distanceTo(rightVec);
+        glass.scale.setScalar(eyeDistance * 1.2); // tweak multiplier for better fit
         }
+    
     }
 
     // Draw blend shapes (Optional)
