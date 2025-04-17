@@ -56,6 +56,7 @@ async function preLoadAssets() {
             delegate: "GPU"
         },
         outputFaceBlendshapes: true,
+        outputFacialTransformationMatrixes: true,
         runningMode,
         numFaces: 1
     });
@@ -158,29 +159,28 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------||||||||||||||||||||||
         // Glass positioning & rotation
-        if (hat && results.facialTransformationMatrixes.length > 0) {
-            // 1. Pull out the 3×4 pose matrix for face #0
-            const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
-          
-            // 2. Build a 4×4 THREE.Matrix4 from it:
-            const m = new THREE.Matrix4().set(
-              raw[0],  raw[1],  raw[2],  raw[3],
-              raw[4],  raw[5],  raw[6],  raw[7],
-              raw[8],  raw[9],  raw[10], raw[11],
-              0,       0,       0,       1
-            );
-          
-            // 3. Put your hat into that same “face” space.
-            //    You may need to tweak a little offset in Y to sit on the crown:
-            hat.matrixAutoUpdate = false;
-            hat.matrix.copy(m);
-            hat.matrix.multiply(new THREE.Matrix4().makeTranslation(0, /*y‑offset*/ 0.1, 0));
-          
-            // 4. Scale the hat to the right size.
-            //    MediaPipe’s metric coords are in meters—so pick a nice scale factor:
-            const scale = 0.2;      // adjust until it fits your model 
-            hat.scale.set(scale, scale, scale);
-          }
+        if (hat &&
+            results.facialTransformationMatrixes &&
+            results.facialTransformationMatrixes.length > 0) {
+        
+          const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
+        
+          const m = new THREE.Matrix4().set(
+            raw[0],  raw[1],  raw[2],  raw[3],
+            raw[4],  raw[5],  raw[6],  raw[7],
+            raw[8],  raw[9],  raw[10], raw[11],
+            0,       0,       0,       1
+          );
+        
+          hat.matrixAutoUpdate = false;
+          hat.matrix.copy(m);
+          hat.matrix.multiply(
+            new THREE.Matrix4().makeTranslation(0, 0.1, 0)
+          );
+        
+          const scale = 0.2; // tweak for your hat model
+          hat.scale.set(scale, scale, scale);
+        }
              
 
     }
