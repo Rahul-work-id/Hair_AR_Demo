@@ -198,7 +198,7 @@ async function predictWebcam() {
             const roll = Math.atan2(eyeVector.y, eyeVector.x);
 
             // Reverse sign of roll if needed (test both)
-            glass.rotation.set(0, 0, roll); // or -roll if needed
+            glass.rotation.set(0, 0, -roll); // or -roll if needed
 
             // Adjust scale as before
             const eyeDistance = leftVec.distanceTo(rightVec);
