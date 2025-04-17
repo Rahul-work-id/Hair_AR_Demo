@@ -155,7 +155,8 @@
                 const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
                 const baseEyeDist = 0.06;
-                const z = (baseEyeDist / eyeDist) * 3;
+                const depthZ = (leftEye.z + rightEye.z) / 2;
+                const z = depthZ * 30;  // scale to Babylon units
 
                 if (!occluder) {
                     const { mesh, faceIndices } = createOccluderMesh(scene);
@@ -177,9 +178,9 @@
                 
 
                 if (hat) {
-                    hat.position.set(x, y + 0.3, zf);
+                    hat.position.set(x, y + 0.3, z);
                     
-                    sphere.position.set(x, y + 0.6, zf);
+                    sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
                     const leftEye = landmarks[33];
                     const rightEye = landmarks[263];
