@@ -68,13 +68,13 @@
 
         const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 0, -10), scene);
         camera.setTarget(BABYLON.Vector3.Zero());
-        camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        camera.fov = 1.0; // Adjust the field of view as needed
         camera.orthoTop = 5;
         camera.orthoBottom = -5;
         camera.orthoLeft = -5 * canvas.width / canvas.height;
         camera.orthoRight = 5 * canvas.width / canvas.height;
 
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        const light = new BABYLON.HemisphsericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
         let hat;
 
@@ -103,37 +103,37 @@
 
         faceMesh.onResults(results => {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-              const landmarks = results.multiFaceLandmarks[0];
-          
-              const forehead = landmarks[10];
-              const leftEye = landmarks[33];
-              const rightEye = landmarks[263];
-          
-              const x = -(forehead.x - 0.5) * 10;
-              const y = -(forehead.y - 0.5) * 10;
-          
-              const dx = rightEye.x - leftEye.x;
-              const dy = rightEye.y - leftEye.y;
-              const dz = rightEye.z - leftEye.z;
-              const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          
-              const baseEyeDist = 0.06;
-              const z = (baseEyeDist / eyeDist) * 100;
-          
-              if (hat) {
-                hat.position.set(x, y + 0.3, z);
-          
-                // Show debug values
-                const debugText = `
+                const landmarks = results.multiFaceLandmarks[0];
+
+                const forehead = landmarks[10];
+                const leftEye = landmarks[33];
+                const rightEye = landmarks[263];
+
+                const x = -(forehead.x - 0.5) * 10;
+                const y = -(forehead.y - 0.5) * 10;
+
+                const dx = rightEye.x - leftEye.x;
+                const dy = rightEye.y - leftEye.y;
+                const dz = rightEye.z - leftEye.z;
+                const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                const baseEyeDist = 0.06;
+                const z = (baseEyeDist / eyeDist) * 3;
+
+                if (hat) {
+                    hat.position.set(x, y + 0.3, z);
+
+                    // Show debug values
+                    const debugText = `
                   👁️ Eye Distance: ${eyeDist.toFixed(4)}<br>
                   🧠 Forehead Z: ${forehead.z.toFixed(4)}<br>
                   🎩 Hat Z Position: ${hat.position.z.toFixed(4)}
                 `;
-                document.getElementById('debug').innerHTML = debugText;
-              }
+                    document.getElementById('debug').innerHTML = debugText;
+                }
             }
-          });
-          
+        });
+
 
 
         const cameraUtils = new Camera(videoElement, {
