@@ -109,7 +109,7 @@
           const trueUp = BABYLON.Vector3.Cross(forward, right).normalize();
 
           // Create rotation matrix from the 3 axes
-          const mat = BABYLON.Matrix.FromXYZAxes(right, trueUp, forward);
+          const mat = BABYLON.Matrix.LookAtLH(pForehead, pChin, trueUp);
           hat.rotationQuaternion = BABYLON.Quaternion.FromRotationMatrix(mat);
         }
       }
