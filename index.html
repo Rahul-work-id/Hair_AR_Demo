@@ -164,7 +164,9 @@
         occluderMaterial.disableColorWrite = true;     // Do not write color to the frame buffer
         occluderMaterial.forceDepthWrite = true;       // Force depth write
         occluderMaterial.backFaceCulling = false;
-
+        occluderMaterial.disableColorWrite = true;
+        occluderMaterial.needDepthPrePass = true;
+        
         occluderSphere.material = occluderMaterial;
         occluderSphere.renderingGroupId = 0;
 
