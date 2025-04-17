@@ -63,12 +63,12 @@
     hat.position.z = 1;
 
     // Optional: Load GLB hat model
-    /*
-    BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "boombox.glb", scene, (meshes) => {
-      hat = meshes[0];
-      hat.scaling.set(1, 1, 1);
-    });
-    */
+    
+    BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
+        hat = meshes[0];
+        hat.scaling.set(1, 1, 1);
+      });
+    
 
     engine.runRenderLoop(() => scene.render());
 
