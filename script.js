@@ -160,46 +160,45 @@ async function predictWebcam() {
         // Glass positioning & rotation
         if (hat && results.faceLandmarks) {
 
-            // 1. Pull out the 3×4 pose matrix
             // 1. Grab the three key landmarks:
-            const lm = results.faceLandmarks[0];
-            const forehead = lm[10];
-            const leftEar = lm[127];
-            const rightEar = lm[356];
-
+            const lm        = results.faceLandmarks[0];
+            const forehead  = lm[10];
+            const leftEar   = lm[127];
+            const rightEar  = lm[356];
+          
             // 2. Helper to convert normalized landmark → world coords
             function toWorld(pt) {
-                // flip X if your video is mirrored:
-                const x = (1 - pt.x - 0.5) * 2;
-                const y = -(pt.y - 0.5) * 2;
-                const z = -pt.z;
-                return new THREE.Vector3(x, y, z).unproject(camera);
+              const x = (1 - pt.x - 0.5) * 2;   // flip X for mirrored video
+              const y = -(pt.y - 0.5) * 2;      // invert Y
+              const z = -pt.z;
+              return new THREE.Vector3(x, y, z).unproject(camera);
             }
-
+          
             // 3. Compute world positions
             const worldForehead = toWorld(forehead);
-            const worldLeftEar = toWorld(leftEar);
+            const worldLeftEar  = toWorld(leftEar);
             const worldRightEar = toWorld(rightEar);
-
-            // 4. Position: forehead + tiny lift (in world units)
-            const headLift = worldLeftEar.distanceTo(worldRightEar) * 0.2;
-            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
-
-            // 5. Scale: ear‑to‑ear width
+          
+            // 4. Position: forehead + tiny lift
             const earDist = worldLeftEar.distanceTo(worldRightEar);
+            const headLift = earDist * 0.2;    // 20% of ear distance
+            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
+          
+            // 5. Scale: proportional to ear‑to‑ear width
             hat.scale.setScalar(earDist * 0.8);
-
-            // 6. Rotate: make the hat’s “brim” face the same direction as your ears
-            //    We build a quaternion that aligns the hat’s X‑axis with the ear vector:
+          
+            // 6. Yaw only: build a flat ear vector (zero out Y)
             const earVec = worldRightEar.clone().sub(worldLeftEar).normalize();
-            // assuming the hat’s local +X goes “across” the head:
-            const hatQuat = new THREE.Quaternion().setFromUnitVectors(
-                new THREE.Vector3(1, 0, 0),
-                earVec
+            const flatEarVec = new THREE.Vector3(earVec.x, 0, earVec.z).normalize();
+          
+            // 7. Create a yaw‑only quaternion:
+            const yawQuat = new THREE.Quaternion().setFromUnitVectors(
+              new THREE.Vector3(1, 0, 0),  // hat’s local “across‑head” +X
+              flatEarVec                   // flattened ear direction
             );
-            hat.setRotationFromQuaternion(hatQuat);
-
-        }
+            hat.quaternion.copy(yawQuat);
+          }
+          
 
 
 
