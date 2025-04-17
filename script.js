@@ -188,13 +188,30 @@ async function predictWebcam() {
             const earDistance = worldLeftEar.distanceTo(worldRightEar);
             const headLift = earDistance * 0.2;
 
+            // Calculate the pitch rotation (tilt)
+            const pitchVec = worldForehead.clone().sub(worldLeftEar).normalize();
+            const pitchQuat = new THREE.Quaternion().setFromUnitVectors(
+                new THREE.Vector3(0, 0, 1), // assuming world up vector
+                pitchVec
+            );
+
             // Apply transformations to the hat
             hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
             hat.scale.setScalar(earDistance * 0.8);
-            const invertedYawQuat = yawQuat.clone();
-            invertedYawQuat.y *= -1;
-            invertedYawQuat.w *= -1;
-            hat.quaternion.copy(invertedYawQuat);
+            hat.quaternion.copy(yawQuat).multiply(pitchQuat); // combine yaw and pitch
+
+            // Apply the same transformations to the hair
+            if (hair) {
+                hair.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.9, 0));
+                hair.scale.setScalar(earDistance); // or tweak for your model
+
+                const invertedYawQuat = yawQuat.clone();
+                invertedYawQuat.y *= -1;
+                invertedYawQuat.w *= -1;
+
+                // Apply combined rotation of yaw and pitch to hair
+                hair.quaternion.copy(invertedYawQuat).multiply(pitchQuat);
+            }
 
             // Occluder: Position & scale to match head
             if (faceOccluder) {
@@ -203,6 +220,7 @@ async function predictWebcam() {
                 faceOccluder.quaternion.copy(yawQuat);
             }
         }
+
     }
 
     renderer.render(scene, camera);
