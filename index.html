@@ -148,6 +148,9 @@
                     const hatRotY = BABYLON.Tools.ToDegrees(hat.rotation.y).toFixed(2);
                     const hatRotZ = BABYLON.Tools.ToDegrees(hat.rotation.z).toFixed(2);
 
+                          // negative to match right tilt
+
+
                     // 🖥️ Debug info
                     const debugText = `
                         👁️ Eye Distance: ${eyeDist.toFixed(4)}<br>
@@ -160,6 +163,11 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;X: ${hatRotX}°, Y: ${hatRotY}°, Z: ${hatRotZ}°
                          `;
                     document.getElementById('debug').innerHTML = debugText;
+
+                       // Apply rotation to the hat
+                       hat.rotation.x = BABYLON.Tools.ToRadians(pitchDeg + 90);     // pitch offset to neutral (looking forward)
+                       hat.rotation.y = BABYLON.Tools.ToRadians(-(yawDeg - 90));     // invert yaw so right is positive
+                       hat.rotation.z = BABYLON.Tools.ToRadians(-rollDeg);  
                 }
             }
         });
