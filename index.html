@@ -1,126 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>MediaPipe + Babylon.js AR Hat</title>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-  <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.js"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: black;
-    }
-    #video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: 0;
-      transform: scaleX(-1); /* 🔄 Flip horizontally */
-    }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-    }
-  </style>
-</head>
-<body>
-  <video id="video" autoplay playsinline muted></video>
-  <canvas id="renderCanvas"></canvas>
-
-  <script>
-    const canvas = document.getElementById("renderCanvas");
-    const engine = new BABYLON.Engine(canvas, true);
-    const scene = new BABYLON.Scene(engine);
-
-    // ✅ Set transparent background so camera feed shows through
-    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
-
-    const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 0, -10), scene);
-    camera.setTarget(BABYLON.Vector3.Zero());
-    camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-    camera.orthoTop = 5;
-    camera.orthoBottom = -5;
-    camera.orthoLeft = -5 * canvas.width / canvas.height;
-    camera.orthoRight = 5 * canvas.width / canvas.height;
-
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-
-    let hat; 
-    
-
-    // Optional: Load GLB hat model
-    BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
-        hat = meshes[0];
-        hat.position.z = 1;
-        hat.scaling.set(1, 1, 1);
-    });
-
-    engine.runRenderLoop(() => scene.render());
-
-    const videoElement = document.getElementById("video");
-
-    const faceMesh = new FaceMesh({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-    });
-
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    faceMesh.onResults(results => {
-        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-          const landmarks = results.multiFaceLandmarks[0];
-      
-          // Get key landmarks
-          const forehead = landmarks[10];
-          const leftEye = landmarks[33];
-          const rightEye = landmarks[263];
-      
-          // 2D screen position
-          const x = -(forehead.x - 0.5) * 10;
-          const y = -(forehead.y - 0.5) * 10;
-      
-          // Estimate depth using distance between eyes
-          const dx = rightEye.x - leftEye.x;
-          const dy = rightEye.y - leftEye.y;
-          const dz = rightEye.z - leftEye.z;
-          const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      
-          const baseEyeDist = 0.06; // average eye distance at normal distance
-          const z = (baseEyeDist / eyeDist) * 3; // Scale factor, tweakable
-      
-          if (hat) {
-            hat.position.set(x, y - 0.5, z); // Adjust y slightly up to sit on head
-          }
+    <meta charset="UTF-8">
+    <title>MediaPipe + Babylon.js AR Hat</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: black;
         }
-      });
-      
 
-    const cameraUtils = new Camera(videoElement, {
-      onFrame: async () => {
-        await faceMesh.send({ image: videoElement });
-      },
-      width: 640,
-      height: 480
-    });
+        #video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 0;
+            transform: scaleX(-1);
+            /* 🔄 Flip horizontally */
+        }
 
-    cameraUtils.start();
-  </script>
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="renderCanvas"></canvas>
+    <div id="debug" style="
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: lime;
+  font-family: monospace;
+  background: rgba(0,0,0,0.5);
+  padding: 8px;
+  border-radius: 6px;
+  z-index: 2;">
+        Loading...
+    </div>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        const scene = new BABYLON.Scene(engine);
+
+        // ✅ Set transparent background so camera feed shows through
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+        const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 0, -10), scene);
+        camera.setTarget(BABYLON.Vector3.Zero());
+        camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        camera.orthoTop = 5;
+        camera.orthoBottom = -5;
+        camera.orthoLeft = -5 * canvas.width / canvas.height;
+        camera.orthoRight = 5 * canvas.width / canvas.height;
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+        let hat;
+
+
+        // Optional: Load GLB hat model
+        BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
+            hat = meshes[0];
+            hat.position.z = 1;
+            hat.scaling.set(1, 1, 1);
+        });
+
+        engine.runRenderLoop(() => scene.render());
+
+        const videoElement = document.getElementById("video");
+
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(results => {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+              const landmarks = results.multiFaceLandmarks[0];
+          
+              const forehead = landmarks[10];
+              const leftEye = landmarks[33];
+              const rightEye = landmarks[263];
+          
+              const x = -(forehead.x - 0.5) * 10;
+              const y = -(forehead.y - 0.5) * 10;
+          
+              const dx = rightEye.x - leftEye.x;
+              const dy = rightEye.y - leftEye.y;
+              const dz = rightEye.z - leftEye.z;
+              const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          
+              const baseEyeDist = 0.06;
+              const z = (baseEyeDist / eyeDist) * 3;
+          
+              if (hat) {
+                hat.position.set(x, y + 0.3, z);
+          
+                // Show debug values
+                const debugText = `
+                  👁️ Eye Distance: ${eyeDist.toFixed(4)}<br>
+                  🧠 Forehead Z: ${forehead.z.toFixed(4)}<br>
+                  🎩 Hat Z Position: ${hat.position.z.toFixed(4)}
+                `;
+                document.getElementById('debug').innerHTML = debugText;
+              }
+            }
+          });
+          
+
+
+        const cameraUtils = new Camera(videoElement, {
+            onFrame: async () => {
+                await faceMesh.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+
+        cameraUtils.start();
+    </script>
 </body>
+
 </html>
