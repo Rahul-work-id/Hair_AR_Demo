@@ -191,7 +191,10 @@ async function predictWebcam() {
             // Apply transformations to the hat
             hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
             hat.scale.setScalar(earDistance * 0.8);
-            hat.quaternion.copy(yawQuat);
+            const invertedYawQuat = yawQuat.clone();
+            invertedYawQuat.y *= -1;
+            invertedYawQuat.w *= -1;
+            hat.quaternion.copy(invertedYawQuat);
 
             // Occluder: Position & scale to match head
             if (faceOccluder) {
