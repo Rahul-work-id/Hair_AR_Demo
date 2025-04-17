@@ -90,7 +90,7 @@
                 }
             });
 
-            hat.isOccluded = true;
+            //hat.isOccluded = true;
             hat.renderingGroupId = 1; // Render after occluder (which is 0)
         });
 
@@ -159,15 +159,13 @@
         const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2 }, scene);
         occluderSphere.isVisible = true;
 
-        const occluderMaterial = new BABYLON.StandardMaterial("occluderMaterial", scene);
-        occluderMaterial.alpha = 0;                    // Fully transparent
-        occluderMaterial.disableColorWrite = true;     // Do not write color to the frame buffer
-        occluderMaterial.forceDepthWrite = true;       // Force depth write
-        occluderMaterial.backFaceCulling = false;
-        occluderMaterial.disableColorWrite = true;
-        occluderMaterial.needDepthPrePass = true;
+        const occluderMaterial = new BABYLON.PBRMaterial("")
+        
+        
         
         occluderSphere.material = occluderMaterial;
+        occluderMaterial.disableColorWrite = true
+        occluderMaterial.needDepthPrePass = true
         occluderSphere.renderingGroupId = 0;
 
 
