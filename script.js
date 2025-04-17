@@ -167,43 +167,42 @@ async function predictWebcam() {
             const rightEye = landmarks[263]; // Approx right eye corner
 
             // Convert normalized to clip space and flip X
-            const mirrorX = function(x) {
+            const mirrorX = function (x) {
                 return 1.0 - x; // Flip X horizontally
-              };
-              
-              const centerVec = new THREE.Vector3(
+            };
+
+            const centerVec = new THREE.Vector3(
                 (mirrorX(center.x) - 0.5) * 2,
-                (center.y - 0.5) * 2,
+                -(center.y - 0.5) * 2,
                 -center.z
-              ).unproject(camera);
-              glass.position.copy(centerVec);
-              
-              const leftVec = new THREE.Vector3(
+            ).unproject(camera);
+            glass.position.copy(centerVec);
+
+            const leftVec = new THREE.Vector3(
                 (mirrorX(leftEye.x) - 0.5) * 2,
-                (leftEye.y - 0.5) * 2,
+                -(leftEye.y - 0.5) * 2,
                 -leftEye.z
-              ).unproject(camera);
-              
-              const rightVec = new THREE.Vector3(
+            ).unproject(camera);
+
+            const rightVec = new THREE.Vector3(
                 (mirrorX(rightEye.x) - 0.5) * 2,
-                (rightEye.y - 0.5) * 2,
+                -(rightEye.y - 0.5) * 2,
                 -rightEye.z
-              ).unproject(camera);
-              
-              // Recalculate eye vector with mirrored X for roll
-              const eyeVector = new THREE.Vector2(
+            ).unproject(camera);
+
+            // Recalculate eye vector with mirrored X for roll
+            const eyeVector = new THREE.Vector2(
                 mirrorX(rightEye.x) - mirrorX(leftEye.x),
                 rightEye.y - leftEye.y
-              );
-              const roll = Math.atan2(eyeVector.y, eyeVector.x);
-              
-              // Adjust rotation
-              glass.rotation.set(0, 0, roll); // or -roll if it's still flipped
-              
-              // Adjust scale
-              const eyeDistance = leftVec.distanceTo(rightVec);
-              glass.scale.setScalar(eyeDistance * 1.2);
-              
+            );
+            const roll = Math.atan2(eyeVector.y, eyeVector.x);
+
+            // Reverse sign of roll if needed (test both)
+            glass.rotation.set(0, 0, -roll); // or -roll if needed
+
+            // Adjust scale as before
+            const eyeDistance = leftVec.distanceTo(rightVec);
+            glass.scale.setScalar(eyeDistance * 1.2);
 
         }
 
