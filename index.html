@@ -158,10 +158,14 @@
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.StandardMaterial("occluderMaterial", scene);
-        occluderMaterial.alpha = 1.0;                    // Fully opaque to engine
-        occluderMaterial.disableColorWrite = true;       // Don't render color
-        occluderMaterial.forceDepthWrite = true;         // Force writing to depth buffer
-        occluderMaterial.depthFunction = BABYLON.Engine.LESS;
+        occluderMaterial.alpha = 0;                    // Fully transparent
+        occluderMaterial.disableColorWrite = true;     // Do not write color to the frame buffer
+        occluderMaterial.forceDepthWrite = true;       // Force depth write
+        occluderMaterial.backFaceCulling = false;
+
+        occluderSphere.material = occluderMaterial;
+        occluderSphere.renderingGroupId = 0;
+
 
 
         //------------------------------------------------------------------------------------------------
