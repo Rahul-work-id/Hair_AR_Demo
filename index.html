@@ -153,10 +153,10 @@
         }
 
 
-        const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 1 }, scene);
+        //const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 1 }, scene);
 
         //-----------------------------------------occluder-------------------------------------------------
-        const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2.5 }, scene);
+        const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2 }, scene);
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.PBRMaterial("")
@@ -183,7 +183,7 @@
                 const rightEye = landmarks[263];
 
                 const x = -(forehead.x - 0.5) * 10;
-                const y = -(forehead.y - 0.4) * 10;
+                const y = -(forehead.y - 0.5) * 10;
                 const zf = (forehead.z + 0.5) * 3;
 
                 const dx = rightEye.x - leftEye.x;
@@ -207,7 +207,7 @@
                 if (hat) {
                     hat.position.set(x, y + 0.3, z);
                     hat.renderingGroupId = 1;
-                    sphere.position.set(x, y + 0.6, z);
+                    //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
                     const leftEye = landmarks[33];
                     const rightEye = landmarks[263];
