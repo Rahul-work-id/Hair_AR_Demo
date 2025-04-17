@@ -156,7 +156,7 @@ async function predictWebcam() {
         }
 
         // Glass positioning
-        //---------------------------------------------------------
+        //---------------------------------------------------------||||||||||||||||||||||
         // Glass positioning & rotation
         if (hat && results.faceLandmarks.length > 0) {
             const lm = results.faceLandmarks[0];
@@ -187,7 +187,7 @@ async function predictWebcam() {
             hat.position.copy(headWorld).add(new THREE.Vector3(0, yOffset, 0));
           
             // scale the hat to ~60% of eye distance
-            hat.scale.setScalar(eyeDist * 0.6);
+            hat.scale.setScalar(eyeDist * 2);
           
             // optional: keep it facing you
             hat.lookAt(camera.position);
