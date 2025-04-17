@@ -84,6 +84,7 @@
             hat.position.z = 1;
             hat.scaling.set(1, 1, 1);
         });
+        hat.renderingGroupId = 1; // Render after occluder (which is 0)
 
         engine.runRenderLoop(() => scene.render());
 
@@ -100,6 +101,41 @@
             minTrackingConfidence: 0.5
         });
 
+        let occluder;
+
+        function createOccluderMesh(scene) {
+            const faceIndices = [
+                // Define triangle indices based on MediaPipe landmarks.
+                // A simple front-face mask (forehead, cheeks, chin)
+                [10, 338, 297], [10, 297, 332], [10, 332, 284], [10, 284, 251], [10, 251, 389],
+                [10, 389, 264], [10, 264, 454], [10, 454, 323], [10, 323, 361], [10, 361, 288]
+            ];
+
+            const faceVertexData = new BABYLON.VertexData();
+            faceVertexData.indices = [];
+            faceVertexData.positions = [];
+
+            const mesh = new BABYLON.Mesh("occluder", scene);
+            mesh.alwaysSelectAsActiveMesh = true;
+            mesh.renderingGroupId = 0;  
+
+            faceVertexData.applyToMesh(mesh, true);
+
+            const material = new BABYLON.StandardMaterial("occluderMat", scene);
+            material.alpha = 0; // Fully transparent
+            material.disableDepthWrite = false;
+            material.forceDepthWrite = true; // Write to depth buffer
+            material.backFaceCulling = false;
+            mesh.material = material;
+
+            occluder = mesh;
+            occluder.setEnabled(false); // initially hidden
+
+            return { mesh, faceIndices };
+        }
+
+
+
         faceMesh.onResults(results => {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const landmarks = results.multiFaceLandmarks[0];
@@ -109,8 +145,8 @@
                 const rightEye = landmarks[263];
 
                 const x = -(forehead.x - 0.5) * 10;
-                const y = -(forehead.y -0.4) * 10;
-                const zf = (forehead.z+ 0.5) * 3;
+                const y = -(forehead.y - 0.4) * 10;
+                const zf = (forehead.z + 0.5) * 3;
 
                 const dx = rightEye.x - leftEye.x;
                 const dy = rightEye.y - leftEye.y;
@@ -119,6 +155,25 @@
 
                 const baseEyeDist = 0.06;
                 const z = (baseEyeDist / eyeDist) * 3;
+
+                if (!occluder) {
+                    const { mesh, faceIndices } = createOccluderMesh(scene);
+                    occluder = mesh;
+                    occluder.faceIndices = faceIndices;
+                }
+                
+                const positions = [];
+                occluder.faceIndices.forEach(tri => {
+                    tri.forEach(index => {
+                        const pt = landmarks[index];
+                        positions.push(-(pt.x - 0.5) * 10, -(pt.y - 0.5) * 10, pt.z * 30);
+                    });
+                });
+                
+                occluder.setEnabled(true);
+                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+                occluder.isVisible = false;
+                
 
                 if (hat) {
                     hat.position.set(x, y + 0.3, zf);
@@ -169,11 +224,11 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;X: ${hatRotX}°, Y: ${hatRotY}°, Z: ${hatRotZ}°
                          `;
                     document.getElementById('debug').innerHTML = debugText;
-                    
-                       // Apply rotation to the hat
-                       //hat.rotation.x = BABYLON.Tools.ToRadians(pitchDeg + 90);     // pitch offset to neutral (looking forward)
-                       //hat.rotation.y = BABYLON.Tools.ToRadians(-(yawDeg - 90));     // invert yaw so right is positive
-                       //hat.rotation.z = BABYLON.Tools.ToRadians(-rollDeg);  
+
+                    // Apply rotation to the hat
+                    //hat.rotation.x = BABYLON.Tools.ToRadians(pitchDeg + 90);     // pitch offset to neutral (looking forward)
+                    //hat.rotation.y = BABYLON.Tools.ToRadians(-(yawDeg - 90));     // invert yaw so right is positive
+                    //hat.rotation.z = BABYLON.Tools.ToRadians(-rollDeg);  
                 }
             }
         });
