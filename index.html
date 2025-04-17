@@ -101,19 +101,19 @@
         if (hat) {
           hat.position.set(x, y + 1, z);
 
-          // Calculate yaw (left-right rotation) based on the eyes' position
-          const direction = new BABYLON.Vector3(
+          // Calculate yaw (left-right rotation) based on the direction of the eyes
+          const eyeDirection = new BABYLON.Vector3(
             rightEye.x - leftEye.x,
             rightEye.y - leftEye.y,
             rightEye.z - leftEye.z
           ).normalize();
 
-          const yaw = Math.atan2(direction.x, direction.z);
+          const yaw = Math.atan2(eyeDirection.x, eyeDirection.z);  // Left-Right Rotation
 
-          // Calculate pitch (up-down tilt) based on forehead and chin
-          const pitch = Math.atan2(forehead.y - chin.y, forehead.z - chin.z);
+          // Calculate pitch (up-down rotation) based on forehead and chin
+          const pitch = Math.atan2(forehead.y - chin.y, forehead.z - chin.z);  // Up-Down Rotation
 
-          // Create the quaternion for rotation
+          // Create quaternion for both yaw and pitch rotations
           const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
 
           // Apply the quaternion to rotate the hat
