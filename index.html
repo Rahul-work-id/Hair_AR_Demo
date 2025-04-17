@@ -83,9 +83,15 @@
             hat = meshes[0];
             hat.position.z = 1;
             hat.scaling.set(1, 1, 1);
+            hat.getChildMeshes().forEach(m => {
+                if (m.material) {
+                    m.material.alpha = 1.0;
+                    m.material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
+                }
+            });
             hat.renderingGroupId = 1; // Render after occluder (which is 0)
         });
-       
+
 
         engine.runRenderLoop(() => scene.render());
 
@@ -106,34 +112,43 @@
 
         function createOccluderMesh(scene) {
             const faceIndices = [
-                // Define triangle indices based on MediaPipe landmarks.
-                // A simple front-face mask (forehead, cheeks, chin)
+                // Define triangle indices based on MediaPipe landmarks
                 [10, 338, 297], [10, 297, 332], [10, 332, 284], [10, 284, 251], [10, 251, 389],
                 [10, 389, 264], [10, 264, 454], [10, 454, 323], [10, 323, 361], [10, 361, 288]
             ];
 
-            const faceVertexData = new BABYLON.VertexData();
-            faceVertexData.indices = [];
-            faceVertexData.positions = [];
+            const positions = [];
+            const indices = [];
+
+            let index = 0;
+            faceIndices.forEach(tri => {
+                tri.forEach(i => {
+                    positions.push(0, 0, 0); // placeholder, will update per frame
+                });
+                indices.push(index, index + 1, index + 2);
+                index += 3;
+            });
+
+            const vertexData = new BABYLON.VertexData();
+            vertexData.positions = positions;
+            vertexData.indices = indices;
 
             const mesh = new BABYLON.Mesh("occluder", scene);
-            mesh.alwaysSelectAsActiveMesh = true;
-            mesh.renderingGroupId = 0;  
+            vertexData.applyToMesh(mesh);
 
-            faceVertexData.applyToMesh(mesh, true);
+            const mat = new BABYLON.StandardMaterial("occluderMat", scene);
+            mat.alpha = 0; // Fully transparent
+            mat.backFaceCulling = false;
+            mat.forceDepthWrite = true;
+            mat.disableDepthWrite = false; // allow depth writing
 
-            const material = new BABYLON.StandardMaterial("occluderMat", scene);
-            material.alpha = 0; // Fully transparent
-            material.disableDepthWrite = false;
-            material.forceDepthWrite = true; // Write to depth buffer
-            material.backFaceCulling = false;
-            mesh.material = material;
-
-            occluder = mesh;
-            occluder.setEnabled(false); // initially hidden
+            mesh.material = mat;
+            mesh.renderingGroupId = 0;
+            mesh.setEnabled(false);
 
             return { mesh, faceIndices };
         }
+
 
         const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 1 }, scene);
 
@@ -163,7 +178,7 @@
                     occluder = mesh;
                     occluder.faceIndices = faceIndices;
                 }
-                
+
                 const positions = [];
                 occluder.faceIndices.forEach(tri => {
                     tri.forEach(index => {
@@ -171,15 +186,15 @@
                         positions.push(-(pt.x - 0.5) * 10, -(pt.y - 0.5) * 10, pt.z * 30);
                     });
                 });
-                
+
                 occluder.setEnabled(true);
-                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
-                occluder.isVisible = false;
-                
+                occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions, false, false);
+                occluder.isVisible = false; // still invisible to the eye but affects depth
+
 
                 if (hat) {
                     hat.position.set(x, y + 0.3, z);
-                    
+
                     sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
                     const leftEye = landmarks[33];
