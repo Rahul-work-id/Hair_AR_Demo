@@ -158,19 +158,33 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------
         if (glass) {
-            const point = results.faceLandmarks[0][168];
-        
-            // Convert normalized screen space (0–1) to clip space (-1 to 1)
-            const x = (point.x - 0.5) * 2;
-            const y = -(point.y - 0.5) * 2;
-            const z = -point.z; // Already in some depth scale
-        
-            // Convert to 3D world space using unproject
-            const vector = new THREE.Vector3(x, y, z);
-            vector.unproject(camera);
-            glass.position.copy(vector);
-        
-            console.log("Glass position:", glass.position);
+            const leftEye = landmarks[33];   // normalized x,y,z
+            const rightEye = landmarks[263];
+            const noseBridge = landmarks[168];
+            
+            // Average position between eyes
+            const midX = (leftEye.x + rightEye.x) / 2;
+            const midY = (leftEye.y + rightEye.y) / 2;
+            const midZ = (leftEye.z + rightEye.z) / 2;
+            
+            // Convert to world position (from normalized to [-1, 1] range)
+            const x = (midX - 0.5) * 2;
+            const y = -(midY - 0.5) * 2;
+            const z = midZ;
+            
+            // Position the glasses
+            glasses.position.set(x, y, z);
+            
+            // Rotate (basic head rotation based on eye direction)
+            const dx = rightEye.x - leftEye.x;
+            const dy = rightEye.y - leftEye.y;
+            const angleY = Math.atan2(dy, dx);
+            glasses.rotation.set(0, 0, -angleY);
+            
+            // Scale the glasses based on distance between eyes
+            const eyeDist = Math.sqrt(dx * dx + dy * dy);
+            glasses.scale.setScalar(eyeDist * 2); // tweak scalar as needed
+            
         }
         
     }
