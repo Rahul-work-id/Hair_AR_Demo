@@ -123,13 +123,33 @@
                 if (hat) {
                     hat.position.set(x, y + 0.3, zf);
 
-                    // ✅ Show debug values for Z axis
-                    const debugText = `
-                        👁️ Eye Distance: ${eyeDist.toFixed(4)}<br>
-                        🧠 Forehead Z (raw): ${forehead.z.toFixed(4)}<br>
-                        🎩 Hat Z Position: ${hat.position.z.toFixed(4)}
-                    `;
-                    document.getElementById('debug').innerHTML = debugText;
+                     // --- ROTATION ESTIMATION ---
+    const eyeVector = new BABYLON.Vector3(
+        rightEye.x - leftEye.x,
+        rightEye.y - leftEye.y,
+        rightEye.z - leftEye.z
+    );
+
+    // Yaw angle: rotation around Y axis (turning head left/right)
+    const yaw = Math.atan2(eyeVector.y, eyeVector.x);
+
+    // Convert radians to degrees for easier reading
+    const yawDeg = BABYLON.Tools.ToDegrees(yaw).toFixed(2);
+
+    // Read current hat rotation
+    const hatRotX = BABYLON.Tools.ToDegrees(hat.rotation.x).toFixed(2);
+    const hatRotY = BABYLON.Tools.ToDegrees(hat.rotation.y).toFixed(2);
+    const hatRotZ = BABYLON.Tools.ToDegrees(hat.rotation.z).toFixed(2);
+
+    // 🔍 Debug output
+    const debugText = `
+        👁️ Eye Distance: ${eyeDist.toFixed(4)}<br>
+        🧠 Forehead Z (raw): ${forehead.z.toFixed(4)}<br>
+        🎩 Hat Z Position: ${hat.position.z.toFixed(4)}<br>
+        ↪️ Head Yaw (°): ${yawDeg}<br>
+        🎩 Hat Rotation (°): X ${hatRotX}, Y ${hatRotY}, Z ${hatRotZ}
+    `;
+    document.getElementById('debug').innerHTML = debugText;
                 }
             }
         });
