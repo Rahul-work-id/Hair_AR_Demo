@@ -45,6 +45,7 @@ scene.add(ambientLight);
 
 let glass;
 let hat;
+let faceOccluder;
 const loader = new GLTFLoader();
 document.getElementById("liveView").appendChild(renderer.domElement);
 
@@ -114,6 +115,15 @@ loader.load('hat.glb', (gltf) => {
     hat.scale.set(1, 1, 1);           // Adjust scale if needed
     scene.add(hat);
 
+    const occluderMaterial = new THREE.MeshBasicMaterial({
+        colorWrite: false, // Don't render color
+        depthWrite: true   // Write to depth buffer
+      });
+      
+      const occluderGeometry = new THREE.SphereGeometry(0.5, 32, 32); // You can tweak size
+       faceOccluder = new THREE.Mesh(occluderGeometry, occluderMaterial);
+      scene.add(faceOccluder);
+      
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
@@ -183,7 +193,10 @@ async function predictWebcam() {
             const earDist = worldLeftEar.distanceTo(worldRightEar);
             const headLift = earDist * 0.2;    // 20% of ear distance
             hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
-          
+            faceOccluder.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.8, 0));
+            faceOccluder.scale.setScalar(earDist * 0.5); // Adjust to match your face size
+            faceOccluder.quaternion.copy(yawQuat);
+            
             // 5. Scale: proportional to ear‑to‑ear width
             hat.scale.setScalar(earDist * 0.8);
           
