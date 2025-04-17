@@ -178,7 +178,8 @@
 
                 if (hat) {
                     hat.position.set(x, y + 0.3, zf);
-
+                    const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 0.1 }, scene);
+                    sphere.position.set(x, y + 0.6, zf);
                     // LANDMARKS
                     const leftEye = landmarks[33];
                     const rightEye = landmarks[263];
