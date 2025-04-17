@@ -83,8 +83,9 @@
             hat = meshes[0];
             hat.position.z = 1;
             hat.scaling.set(1, 1, 1);
+            hat.renderingGroupId = 1; // Render after occluder (which is 0)
         });
-        hat.renderingGroupId = 1; // Render after occluder (which is 0)
+       
 
         engine.runRenderLoop(() => scene.render());
 
