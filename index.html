@@ -63,12 +63,10 @@
     hat.position.z = 1;
 
     // Optional: Load GLB hat model
-    
     BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
         hat = meshes[0];
         hat.scaling.set(1, 1, 1);
-      });
-    
+    });
 
     engine.runRenderLoop(() => scene.render());
 
@@ -98,13 +96,21 @@
         if (hat) {
           hat.position.set(x, y + 1, z);
 
-          const dx = forehead.x - chin.x;
-          const dy = forehead.y - chin.y;
-          const dz = forehead.z - chin.z;
+          // Head rotation logic using forehead and chin
+          const pForehead = new BABYLON.Vector3(forehead.x, forehead.y, forehead.z);
+          const pChin = new BABYLON.Vector3(chin.x, chin.y, chin.z);
 
-          hat.rotation.x = dy * 3;
-          hat.rotation.y = -dx * 3;
-          hat.rotation.z = dz * 3;
+          // Forward vector from forehead to chin
+          const forward = pChin.subtract(pForehead).normalize();
+
+          // Create orthogonal basis using forward and arbitrary up vector
+          const up = new BABYLON.Vector3(0, 1, 0);
+          const right = BABYLON.Vector3.Cross(up, forward).normalize();
+          const trueUp = BABYLON.Vector3.Cross(forward, right).normalize();
+
+          // Create rotation matrix from the 3 axes
+          const mat = BABYLON.Matrix.FromXYZAxes(right, trueUp, forward);
+          hat.rotationQuaternion = BABYLON.Quaternion.FromRotationMatrix(mat);
         }
       }
     });
