@@ -58,14 +58,13 @@
 
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-    let hat = BABYLON.MeshBuilder.CreateSphere("hat", {diameter: 0.5}, scene);
-    hat.material = new BABYLON.StandardMaterial("hatMat", scene);
-    hat.material.diffuseColor = new BABYLON.Color3(1, 0, 0); // red
-    hat.position.z = 1;
+    let hat; 
+    
 
     // Optional: Load GLB hat model
     BABYLON.SceneLoader.ImportMesh("", "./", "hard_hat.glb", scene, (meshes) => {
         hat = meshes[0];
+        hat.position.z = 1;
         hat.scaling.set(1, 1, 1);
     });
 
