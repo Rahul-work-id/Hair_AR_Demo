@@ -158,40 +158,30 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------||||||||||||||||||||||
         // Glass positioning & rotation
-        if (hat && results.faceLandmarks.length > 0) {
-            const lm = results.faceLandmarks[0];
-            const forehead = lm[10];      // forehead landmark
-            const leftEye  = lm[33];
-            const rightEye = lm[263];
+        if (hat && results.facialTransformationMatrixes.length > 0) {
+            // 1. Pull out the 3×4 pose matrix for face #0
+            const raw = results.facialTransformationMatrixes[0]; // Float32Array[12]
           
-            // mirror X if your video is mirrored
-            const mirrorX = x => 1.0 - x;
+            // 2. Build a 4×4 THREE.Matrix4 from it:
+            const m = new THREE.Matrix4().set(
+              raw[0],  raw[1],  raw[2],  raw[3],
+              raw[4],  raw[5],  raw[6],  raw[7],
+              raw[8],  raw[9],  raw[10], raw[11],
+              0,       0,       0,       1
+            );
           
-            // helper to go from normalized landmark → world coords
-            const toWorld = pt => new THREE.Vector3(
-              (mirrorX(pt.x) - 0.5) * 2,
-              -(pt.y - 0.5) * 2,
-              -pt.z
-            ).unproject(camera);
+            // 3. Put your hat into that same “face” space.
+            //    You may need to tweak a little offset in Y to sit on the crown:
+            hat.matrixAutoUpdate = false;
+            hat.matrix.copy(m);
+            hat.matrix.multiply(new THREE.Matrix4().makeTranslation(0, /*y‑offset*/ 0.1, 0));
           
-            // world positions
-            const headWorld  = toWorld(forehead);
-            const leftWorld  = toWorld(leftEye);
-            const rightWorld = toWorld(rightEye);
-          
-            // eye distance for scale
-            const eyeDist = leftWorld.distanceTo(rightWorld);
-          
-            // position the hat a bit above the forehead, proportional to head size
-            const yOffset = eyeDist * 0.4; 
-            hat.position.copy(headWorld).add(new THREE.Vector3(0, yOffset, 0));
-          
-            // scale the hat to ~60% of eye distance
-            hat.scale.setScalar(eyeDist * 2);
-          
-            // optional: keep it facing you
-            hat.lookAt(camera.position);
-          }          
+            // 4. Scale the hat to the right size.
+            //    MediaPipe’s metric coords are in meters—so pick a nice scale factor:
+            const scale = 0.2;      // adjust until it fits your model 
+            hat.scale.set(scale, scale, scale);
+          }
+             
 
     }
 
