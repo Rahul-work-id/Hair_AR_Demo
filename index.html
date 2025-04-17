@@ -118,7 +118,7 @@
               const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
           
               const baseEyeDist = 0.06;
-              const z = (baseEyeDist / eyeDist) * 3;
+              const z = -(forehead.y - 0.5) * 100//(baseEyeDist / eyeDist) * 3;
           
               if (hat) {
                 hat.position.set(x, y + 0.3, z);
