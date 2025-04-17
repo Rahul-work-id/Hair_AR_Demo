@@ -84,24 +84,33 @@
     });
 
     faceMesh.onResults(results => {
-      if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-        const landmarks = results.multiFaceLandmarks[0];
-
-        // Get key landmarks for position
-        const forehead = landmarks[10];
-        const chin = landmarks[152];
-
-        // Position the hat based on the forehead landmark
-        const x = -(forehead.x - 0.5) * 10;
-        const y = -(forehead.y - 0.5) * 10;
-        const z = -(forehead.z * 20); // More dynamic depth
-
-        if (hat) {
-          // Update hat position without rotation
-          hat.position.set(x, y - 0.5, z); // Slightly offset the y position to adjust the hat on the head
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+          const landmarks = results.multiFaceLandmarks[0];
+      
+          // Get key landmarks
+          const forehead = landmarks[10];
+          const leftEye = landmarks[33];
+          const rightEye = landmarks[263];
+      
+          // 2D screen position
+          const x = -(forehead.x - 0.5) * 10;
+          const y = -(forehead.y - 0.5) * 10;
+      
+          // Estimate depth using distance between eyes
+          const dx = rightEye.x - leftEye.x;
+          const dy = rightEye.y - leftEye.y;
+          const dz = rightEye.z - leftEye.z;
+          const eyeDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      
+          const baseEyeDist = 0.06; // average eye distance at normal distance
+          const z = (baseEyeDist / eyeDist) * 3; // Scale factor, tweakable
+      
+          if (hat) {
+            hat.position.set(x, y - 0.5, z); // Adjust y slightly up to sit on head
+          }
         }
-      }
-    });
+      });
+      
 
     const cameraUtils = new Camera(videoElement, {
       onFrame: async () => {
