@@ -137,7 +137,7 @@
             vertexData.applyToMesh(mesh);
 
             const mat = new BABYLON.StandardMaterial("occluderMat", scene);
-            mat.alpha = 0; // Fully transparent
+            mat.alpha = .5; // Fully transparent
             mat.backFaceCulling = false;
             mat.forceDepthWrite = true;
             mat.disableDepthWrite = false; // allow depth writing
@@ -189,7 +189,7 @@
 
                 occluder.setEnabled(true);
                 occluder.updateVerticesData(BABYLON.VertexBuffer.PositionKind, positions, false, false);
-                occluder.isVisible = false; // still invisible to the eye but affects depth
+                occluder.isVisible = true; // still invisible to the eye but affects depth
 
 
                 if (hat) {
