@@ -89,6 +89,8 @@
                     m.material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
                 }
             });
+
+            hat.isOccluded = true;
             hat.renderingGroupId = 1; // Render after occluder (which is 0)
         });
 
