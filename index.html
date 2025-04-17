@@ -138,9 +138,10 @@
 
             const mat = new BABYLON.StandardMaterial("occluderMat", scene);
             mat.alpha = .5; // Fully transparent
+            material.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red for visibility
             mat.backFaceCulling = false;
-            mat.forceDepthWrite = true;
-            mat.disableDepthWrite = false; // allow depth writing
+            //mat.forceDepthWrite = true;
+            //mat.disableDepthWrite = false; // allow depth writing
 
             mesh.material = mat;
             mesh.renderingGroupId = 0;
