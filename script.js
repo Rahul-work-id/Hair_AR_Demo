@@ -44,7 +44,7 @@ scene.add(ambientLight);
 
 
 let glass;
-
+let hat;
 const loader = new GLTFLoader();
 document.getElementById("liveView").appendChild(renderer.domElement);
 
@@ -106,14 +106,14 @@ function enableCam() {
     });
 }
 
-loader.load('glass.glb', (gltf) => {
+loader.load('hat.glb', (gltf) => {
     console.log("Model loaded");
-    glass = gltf.scene;
-    glass.position.set(0, 0, 0);         // Center of scene
-    glass.scale.set(.5, .5, .5);           // Adjust scale if needed
-    scene.add(glass);
+    hat = gltf.scene;
+    hat.position.set(0, 0, 0);         // Center of scene
+    hat.scale.set(.5, .5, .5);           // Adjust scale if needed
+    scene.add(hat);
 
-    camera.lookAt(glass.position);
+    camera.lookAt(hat.position);
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
@@ -158,7 +158,7 @@ async function predictWebcam() {
         // Glass positioning
         //---------------------------------------------------------
         // Glass positioning & rotation
-        if (glass && results.faceLandmarks.length > 0) {
+        if (hat && results.faceLandmarks.length > 0) {
             const landmarks = results.faceLandmarks[0];
 
             // Position using landmark #168 (between eyes)
@@ -166,18 +166,27 @@ async function predictWebcam() {
             const leftEye = landmarks[33];   // Approx left eye corner
             const rightEye = landmarks[263]; // Approx right eye corner
 
-            // Convert normalized to clip space and flip X
-            const mirrorX = function (x) {
-                return 1.0 - x; // Flip X horizontally
-            };
+            // Flip X like before if needed
+            const mirrorX = (x) => 1.0 - x;
 
-            const centerVec = new THREE.Vector3(
+            // Convert the center of the head (usually between the eyes or forehead)
+            const headCenter = new THREE.Vector3(
                 (mirrorX(center.x) - 0.5) * 2,
                 -(center.y - 0.5) * 2,
-                -center.z
+                -center.z // Negative Z for perspective unproject
             ).unproject(camera);
-            glass.position.copy(centerVec);
 
+            // Optional: Offset the hat slightly above the head
+            const hatOffset = new THREE.Vector3(0, 0.15, 0); // tweak Y value for vertical offset
+            const hatPosition = headCenter.clone().add(hatOffset);
+
+            // Apply position to the hat mesh
+            hat.position.copy(hatPosition);
+
+            // Optional: face the hat toward the camera direction
+            hat.lookAt(camera.position);
+
+            // Optional: scale the hat based on face size (distance between eyes)
             const leftVec = new THREE.Vector3(
                 (mirrorX(leftEye.x) - 0.5) * 2,
                 -(leftEye.y - 0.5) * 2,
@@ -190,19 +199,8 @@ async function predictWebcam() {
                 -rightEye.z
             ).unproject(camera);
 
-            // Recalculate eye vector with mirrored X for roll
-            const eyeVector = new THREE.Vector2(
-                mirrorX(rightEye.x) - mirrorX(leftEye.x),
-                rightEye.y - leftEye.y
-            );
-            const roll = Math.atan2(eyeVector.y, eyeVector.x);
-
-            // Reverse sign of roll if needed (test both)
-            glass.rotation.set(0, 0, -roll); // or -roll if needed
-
-            // Adjust scale as before
             const eyeDistance = leftVec.distanceTo(rightVec);
-            glass.scale.setScalar(eyeDistance * 1.2);
+            hat.scale.setScalar(eyeDistance * 2); // You can tweak this multiplier
 
         }
 
