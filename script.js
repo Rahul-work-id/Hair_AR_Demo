@@ -157,36 +157,32 @@ async function predictWebcam() {
 
         // Glass positioning
         //---------------------------------------------------------
-        if (glass) {
-            const leftEye = results.faceLandmarks[33];   // normalized x,y,z
-            const rightEye = results.faceLandmarks[263];
-            const noseBridge = results.faceLandmarks[168];
-            
-            // Average position between eyes
-            const midX = (leftEye.x + rightEye.x) / 2;
-            const midY = (leftEye.y + rightEye.y) / 2;
-            const midZ = (leftEye.z + rightEye.z) / 2;
-            
-            // Convert to world position (from normalized to [-1, 1] range)
-            const x = (midX - 0.5) * 2;
-            const y = -(midY - 0.5) * 2;
-            const z = midZ;
-            
-            // Position the glasses
-            glasses.position.set(x, y, z);
-            
-            // Rotate (basic head rotation based on eye direction)
-            const dx = rightEye.x - leftEye.x;
-            const dy = rightEye.y - leftEye.y;
-            const angleY = Math.atan2(dy, dx);
-            glasses.rotation.set(0, 0, -angleY);
-            
-            // Scale the glasses based on distance between eyes
-            const eyeDist = Math.sqrt(dx * dx + dy * dy);
-            glasses.scale.setScalar(eyeDist * 2); // tweak scalar as needed
-            
+       // Glass positioning & rotation
+        if (glass && results.faceLandmarks.length > 0) {
+            const landmarks = results.faceLandmarks[0];
+
+            // Position using landmark #168 (between eyes)
+            const center = landmarks[168];
+            const leftEye = landmarks[33];   // Approx left eye corner
+            const rightEye = landmarks[263]; // Approx right eye corner
+
+            // Convert normalized to clip space
+            const centerVec = new THREE.Vector3((center.x - 0.5) * 2, -(center.y - 0.5) * 2, -center.z).unproject(camera);
+            glass.position.copy(centerVec);
+
+            // Approximate face orientation
+            const leftVec = new THREE.Vector3((leftEye.x - 0.5) * 2, -(leftEye.y - 0.5) * 2, -leftEye.z).unproject(camera);
+            const rightVec = new THREE.Vector3((rightEye.x - 0.5) * 2, -(rightEye.y - 0.5) * 2, -rightEye.z).unproject(camera);
+
+            const eyeDirection = new THREE.Vector3().subVectors(rightVec, leftVec).normalize();
+            const up = new THREE.Vector3(0, 1, 0); // assume up
+            const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), eyeDirection);
+            glass.setRotationFromQuaternion(quaternion);
+
+            // Optional scaling based on eye distance
+            const eyeDistance = leftVec.distanceTo(rightVec);
+            glass.scale.setScalar(eyeDistance * 1.2); // tweak multiplier for better fit
         }
-        
     }
 
     // Draw blend shapes (Optional)
