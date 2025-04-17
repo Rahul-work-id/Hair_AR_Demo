@@ -43,6 +43,10 @@
     const canvas = document.getElementById("renderCanvas");
     const engine = new BABYLON.Engine(canvas, true);
     const scene = new BABYLON.Scene(engine);
+
+    // ✅ Set transparent background so camera feed shows through
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
     const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 0, -10), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
@@ -84,7 +88,6 @@
     faceMesh.onResults(results => {
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
-
         const forehead = landmarks[10];
         const chin = landmarks[152];
 
