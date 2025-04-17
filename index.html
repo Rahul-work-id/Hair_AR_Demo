@@ -94,7 +94,7 @@
         // Position the hat based on the forehead landmark
         const x = -(forehead.x - 0.5) * 10;
         const y = -(forehead.y - 0.5) * 10;
-        const z = (forehead.z - 0.1) * 10;
+        const z = -(forehead.z * 20); // More dynamic depth
 
         if (hat) {
           // Update hat position without rotation
