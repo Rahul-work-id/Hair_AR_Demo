@@ -118,12 +118,12 @@ loader.load('hat.glb', (gltf) => {
     const occluderMaterial = new THREE.MeshBasicMaterial({
         colorWrite: false, // Don't render color
         depthWrite: true   // Write to depth buffer
-      });
-      
-      const occluderGeometry = new THREE.SphereGeometry(0.5, 32, 32); // You can tweak size
-       faceOccluder = new THREE.Mesh(occluderGeometry, occluderMaterial);
-      scene.add(faceOccluder);
-      
+    });
+
+    const occluderGeometry = new THREE.SphereGeometry(0.5, 32, 32); // You can tweak size
+    faceOccluder = new THREE.Mesh(occluderGeometry, occluderMaterial);
+    scene.add(faceOccluder);
+
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
@@ -146,95 +146,69 @@ async function predictWebcam() {
         results = await faceLandmarker.detectForVideo(video, nowInMs);
     }
 
-    if (results && results.faceLandmarks && results.faceLandmarks.length > 0) {
-        console.log("Face landmarks updating ✅");
-    }
-    // Resize canvas to match video dimensions
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-    if (results.faceLandmarks) {
-        for (const landmarks of results.faceLandmarks) {
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#FF3030", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#30FF30", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW, { color: "#30FF30", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW, { color: "#FF3030", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, { color: "#E0E0E0", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#E0E0E0", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS, { color: "#30FF30", lineWidth: 1 });
-            drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS, { color: "#FF3030", lineWidth: 1 });
-        }
+    if (results && results.faceLandmarks?.length > 0) {
+        const landmarks = results.faceLandmarks[0];
 
-        // Glass positioning
-        //---------------------------------------------------------||||||||||||||||||||||
-        // Glass positioning & rotation
-        if (hat && results.faceLandmarks) {
+        // Drawing landmarks
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#C0C0C070", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#30FF30", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#FF3030", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW, { color: "#30FF30", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW, { color: "#FF3030", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, { color: "#E0E0E0", lineWidth: 1 });
+        drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#E0E0E0", lineWidth: 1 });
 
-            // 1. Grab the three key landmarks:
-            const lm        = results.faceLandmarks[0];
-            const forehead  = lm[10];
-            const leftEar   = lm[127];
-            const rightEar  = lm[356];
-          
-            // 2. Helper to convert normalized landmark → world coords
+        // Hat logic
+        if (hat && landmarks) {
+            const forehead = landmarks[10];
+            const leftEar = landmarks[127];
+            const rightEar = landmarks[356];
+
             function toWorld(pt) {
-              const x = (1 - pt.x - 0.5) * 2;   // flip X for mirrored video
-              const y = -(pt.y - 0.5) * 2;      // invert Y
-              const z = -pt.z;
-              return new THREE.Vector3(x, y, z).unproject(camera);
+                const x = (1 - pt.x - 0.5) * 2;
+                const y = -(pt.y - 0.5) * 2;
+                const z = -pt.z;
+                return new THREE.Vector3(x, y, z).unproject(camera);
             }
-          
-            // 3. Compute world positions
+
             const worldForehead = toWorld(forehead);
-            const worldLeftEar  = toWorld(leftEar);
+            const worldLeftEar = toWorld(leftEar);
             const worldRightEar = toWorld(rightEar);
-          
-            // 4. Position: forehead + tiny lift
-            const earDist = worldLeftEar.distanceTo(worldRightEar);
-            const headLift = earDist * 0.2;    // 20% of ear distance
-            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
-            faceOccluder.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.8, 0));
-            faceOccluder.scale.setScalar(earDist * 0.5); // Adjust to match your face size
-            faceOccluder.quaternion.copy(yawQuat);
-            
-            // 5. Scale: proportional to ear‑to‑ear width
-            hat.scale.setScalar(earDist * 0.8);
-          
-            // 6. Yaw only: build a flat ear vector (zero out Y)
+
             const earVec = worldRightEar.clone().sub(worldLeftEar).normalize();
             const flatEarVec = new THREE.Vector3(earVec.x, 0, earVec.z).normalize();
-          
-            // 7. Create a yaw‑only quaternion:
+
             const yawQuat = new THREE.Quaternion().setFromUnitVectors(
-              new THREE.Vector3(-1, 0, 0),  // hat’s local “across‑head” +X
-              flatEarVec                   // flattened ear direction
+                new THREE.Vector3(-1, 0, 0),
+                flatEarVec
             );
+
+            const earDistance = worldLeftEar.distanceTo(worldRightEar);
+            const headLift = earDistance * 0.2;
+
+            // Apply transformations to the hat
+            hat.position.copy(worldForehead).add(new THREE.Vector3(0, headLift, 0));
+            hat.scale.setScalar(earDistance * 0.8);
             hat.quaternion.copy(yawQuat);
-          }
-          
 
-
-
-
-    }
-
-    // Draw blend shapes (Optional)
-    if (results.faceBlendshapes) {
-        const blendShapes = results.faceBlendshapes[0].categories;
-        const halfLength = Math.ceil(blendShapes.length / 2);
-        const column1Blend = blendShapes.slice(0, halfLength);
-        const column2Blend = blendShapes.slice(halfLength);
-        // drawBlendShapes(column1, column1Blend);
-        // drawBlendShapes(column2, column2Blend);
+            // Occluder: Position & scale to match head
+            if (faceOccluder) {
+                faceOccluder.position.copy(worldForehead).add(new THREE.Vector3(0, headLift * 0.8, 0));
+                faceOccluder.scale.setScalar(earDistance * 0.5);
+                faceOccluder.quaternion.copy(yawQuat);
+            }
+        }
     }
 
     renderer.render(scene, camera);
 
     if (webcamRunning) {
-        renderer.render(scene, camera);
         window.requestAnimationFrame(predictWebcam);
     }
 }
+
 renderer.render(scene, camera);
 function drawBlendShapes(el, blendShapes) {
     if (!blendShapes.length) return;
