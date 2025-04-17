@@ -93,25 +93,30 @@
         const leftEye = landmarks[33];
         const rightEye = landmarks[133];
 
+        // Position the hat based on the forehead landmark
         const x = (forehead.x - 0.5) * 10;
         const y = -(forehead.y - 0.5) * 10;
         const z = (forehead.z - 0.1) * 10;
 
         if (hat) {
-          // Position the hat
           hat.position.set(x, y + 1, z);
 
-          // Calculate the head rotation using the eyes and forehead
+          // Calculate yaw (left-right rotation) based on the eyes' position
           const direction = new BABYLON.Vector3(
             rightEye.x - leftEye.x,
             rightEye.y - leftEye.y,
             rightEye.z - leftEye.z
           ).normalize();
 
-          // Create a rotation quaternion from the eye direction
-          const quaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.atan2(direction.x, direction.z));
+          const yaw = Math.atan2(direction.x, direction.z);
 
-          // Apply the calculated quaternion to the hat
+          // Calculate pitch (up-down tilt) based on forehead and chin
+          const pitch = Math.atan2(forehead.y - chin.y, forehead.z - chin.z);
+
+          // Create the quaternion for rotation
+          const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
+
+          // Apply the quaternion to rotate the hat
           hat.rotationQuaternion = quaternion;
         }
       }
