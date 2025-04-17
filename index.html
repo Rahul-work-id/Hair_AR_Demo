@@ -15,18 +15,28 @@
       overflow: hidden;
       background: black;
     }
-    video {
-      display: none;
-    }
-    canvas {
+    #video {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100vw;
       height: 100vh;
-      display: block;
+      object-fit: cover;
+      z-index: 0;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline muted></video>
   <canvas id="renderCanvas"></canvas>
 
   <script>
@@ -35,13 +45,20 @@
     const scene = new BABYLON.Scene(engine);
     const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 0, -10), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0), scene);
+    camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+    camera.orthoTop = 5;
+    camera.orthoBottom = -5;
+    camera.orthoLeft = -5 * canvas.width / canvas.height;
+    camera.orthoRight = 5 * canvas.width / canvas.height;
 
-    // Load a GLB hat model or use a placeholder sphere
-    let hat = BABYLON.MeshBuilder.CreateSphere("hat", {diameter: 1}, scene);
+    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+    let hat = BABYLON.MeshBuilder.CreateSphere("hat", {diameter: 0.5}, scene);
+    hat.material = new BABYLON.StandardMaterial("hatMat", scene);
+    hat.material.diffuseColor = new BABYLON.Color3(1, 0, 0); // red
     hat.position.z = 1;
 
-    // If you want to load a .glb hat instead, uncomment this:
+    // Optional: Load GLB hat model
     /*
     BABYLON.SceneLoader.ImportMesh("", "https://models.babylonjs.com/", "boombox.glb", scene, (meshes) => {
       hat = meshes[0];
@@ -67,16 +84,16 @@
     faceMesh.onResults(results => {
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
-        
+
         const forehead = landmarks[10];
         const chin = landmarks[152];
 
         const x = (forehead.x - 0.5) * 10;
         const y = -(forehead.y - 0.5) * 10;
-        const z = (forehead.z) * 5;
+        const z = (forehead.z - 0.1) * 10;
 
         if (hat) {
-          hat.position.set(x, y + 2, z);
+          hat.position.set(x, y + 1, z);
 
           const dx = forehead.x - chin.x;
           const dy = forehead.y - chin.y;
@@ -89,14 +106,14 @@
       }
     });
 
-    // Start camera and send video frames to MediaPipe
     const cameraUtils = new Camera(videoElement, {
       onFrame: async () => {
-        await faceMesh.send({image: videoElement});
+        await faceMesh.send({ image: videoElement });
       },
       width: 640,
       height: 480
     });
+
     cameraUtils.start();
   </script>
 </body>
