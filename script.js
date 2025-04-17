@@ -31,8 +31,8 @@ const camera = new THREE.PerspectiveCamera(
     window.innerWidth / window.innerHeight,
     0.1,
     1000
-  );
-  camera.position.z = 2;
+);
+camera.position.z = 2;
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(0, 1, 1).normalize();
 scene.add(light);
@@ -112,13 +112,13 @@ loader.load('glass.glb', (gltf) => {
     glass.position.set(0, 0, 0);         // Center of scene
     glass.scale.set(.5, .5, .5);           // Adjust scale if needed
     scene.add(glass);
-  
-    camera.lookAt(glass.position);    
+
+    camera.lookAt(glass.position);
 }, undefined, (error) => {
     console.error("Error loading model:", error);
 });
 
-  
+
 
 const drawingUtils = new DrawingUtils(canvasCtx);
 let lastVideoTime = -1;
@@ -157,35 +157,55 @@ async function predictWebcam() {
 
         // Glass positioning
         //---------------------------------------------------------
-       // Glass positioning & rotation
-       if (glass && results.faceLandmarks.length > 0) {
-        const landmarks = results.faceLandmarks[0];
-    
-        // Position using landmark #168 (between eyes)
-        const center = landmarks[168];
-        const leftEye = landmarks[33];   // Approx left eye corner
-        const rightEye = landmarks[263]; // Approx right eye corner
-    
-        // Convert normalized to clip space
-        const centerVec = new THREE.Vector3((center.x - 0.5) * 2, -(center.y - 0.5) * 2, -center.z).unproject(camera);
-        glass.position.copy(centerVec);
-    
-        // Approximate face orientation
-        const leftVec = new THREE.Vector3((leftEye.x - 0.5) * 2, -(leftEye.y - 0.5) * 2, -leftEye.z).unproject(camera);
-        const rightVec = new THREE.Vector3((rightEye.x - 0.5) * 2, -(rightEye.y - 0.5) * 2, -rightEye.z).unproject(camera);
-    
-        // Compute roll (head tilt) from eye line
-        const eyeVector = new THREE.Vector2(rightEye.x - leftEye.x, rightEye.y - leftEye.y);
-        const roll = Math.atan2(eyeVector.y, eyeVector.x); // in radians
-    
-        // Set rotation with tilt (around Z-axis)
-        glass.rotation.set(0, 0, -roll); // flip sign to correct mirror effect
-    
-        // Optional scaling based on eye distance
-        const eyeDistance = leftVec.distanceTo(rightVec);
-        glass.scale.setScalar(eyeDistance * 1.2); // tweak multiplier for better fit
+        // Glass positioning & rotation
+        if (glass && results.faceLandmarks.length > 0) {
+            const landmarks = results.faceLandmarks[0];
+
+            // Position using landmark #168 (between eyes)
+            const center = landmarks[168];
+            const leftEye = landmarks[33];   // Approx left eye corner
+            const rightEye = landmarks[263]; // Approx right eye corner
+
+            // Convert normalized to clip space and flip X
+            const mirrorX = function (x) {
+                return 1.0 - x; // Flip X horizontally
+            };
+
+            const centerVec = new THREE.Vector3(
+                (mirrorX(center.x) - 0.5) * 2,
+                -(center.y - 0.5) * 2,
+                -center.z
+            ).unproject(camera);
+            glass.position.copy(centerVec);
+
+            const leftVec = new THREE.Vector3(
+                (mirrorX(leftEye.x) - 0.5) * 2,
+                -(leftEye.y - 0.5) * 2,
+                -leftEye.z
+            ).unproject(camera);
+
+            const rightVec = new THREE.Vector3(
+                (mirrorX(rightEye.x) - 0.5) * 2,
+                -(rightEye.y - 0.5) * 2,
+                -rightEye.z
+            ).unproject(camera);
+
+            // Recalculate eye vector with mirrored X for roll
+            const eyeVector = new THREE.Vector2(
+                mirrorX(rightEye.x) - mirrorX(leftEye.x),
+                rightEye.y - leftEye.y
+            );
+            const roll = Math.atan2(eyeVector.y, eyeVector.x);
+
+            // Reverse sign of roll if needed (test both)
+            glass.rotation.set(0, 0, roll); // or -roll if needed
+
+            // Adjust scale as before
+            const eyeDistance = leftVec.distanceTo(rightVec);
+            glass.scale.setScalar(eyeDistance * 1.2);
+
         }
-    
+
     }
 
     // Draw blend shapes (Optional)
