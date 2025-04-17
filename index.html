@@ -86,31 +86,33 @@
     faceMesh.onResults(results => {
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
+
+        // Get key landmarks for rotation
         const forehead = landmarks[10];
         const chin = landmarks[152];
+        const leftEye = landmarks[33];
+        const rightEye = landmarks[133];
 
         const x = (forehead.x - 0.5) * 10;
         const y = -(forehead.y - 0.5) * 10;
         const z = (forehead.z - 0.1) * 10;
 
         if (hat) {
+          // Position the hat
           hat.position.set(x, y + 1, z);
 
-          // Head rotation logic using forehead and chin
-          const pForehead = new BABYLON.Vector3(forehead.x, forehead.y, forehead.z);
-          const pChin = new BABYLON.Vector3(chin.x, chin.y, chin.z);
+          // Calculate the head rotation using the eyes and forehead
+          const direction = new BABYLON.Vector3(
+            rightEye.x - leftEye.x,
+            rightEye.y - leftEye.y,
+            rightEye.z - leftEye.z
+          ).normalize();
 
-          // Forward vector from forehead to chin
-          const forward = pChin.subtract(pForehead).normalize();
+          // Create a rotation quaternion from the eye direction
+          const quaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, Math.atan2(direction.x, direction.z));
 
-          // Create orthogonal basis using forward and arbitrary up vector
-          const up = new BABYLON.Vector3(0, 1, 0);
-          const right = BABYLON.Vector3.Cross(up, forward).normalize();
-          const trueUp = BABYLON.Vector3.Cross(forward, right).normalize();
-
-          // Create rotation matrix from the 3 axes
-          const mat = BABYLON.Matrix.LookAtLH(pForehead, pChin, trueUp);
-          hat.rotationQuaternion = BABYLON.Quaternion.FromRotationMatrix(mat);
+          // Apply the calculated quaternion to the hat
+          hat.rotationQuaternion = quaternion;
         }
       }
     });
