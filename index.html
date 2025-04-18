@@ -173,10 +173,28 @@
         // Move to foreground rendering group
         occluderSphere.renderingGroupId = 0;
 
+        // Function to create spheres for face landmarks
+        function createLandmarkSpheres(landmarks) {
+            landmarks.forEach((landmark, index) => {
+                const sphere = BABYLON.MeshBuilder.CreateSphere(`landmark_${index}`, { diameter: 0.1 }, scene);
+                const x = (landmark.x - 0.5) * 10; // Convert to BabylonJS space
+                const y = (landmark.y - 0.5) * 10;
+                const z = (landmark.z + 0.5) * 10;
+
+                sphere.position.set(x, y, z);
+
+                // Material for the landmark
+                const material = new BABYLON.StandardMaterial("landmarkMat", scene);
+                material.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red color
+                sphere.material = material;
+            });
+        }
+
+
         faceMesh.onResults(results => {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const landmarks = results.multiFaceLandmarks[0];
-
+                createLandmarkSpheres(landmarks); // Create spheres for the landmarks
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
                 const forehead = landmarks[10];
@@ -206,64 +224,7 @@
                 const z_oc = forehead.z * 30;
 
                 //------------------------------facemesh--------------------------------------------------
-                // Declare outside the onResults if you want to reuse
-                let landmarkPoints = [];
-                let landmarkLines = [];
-
-                faceMesh.onResults(results => {
-                    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
-                        const landmarks = results.multiFaceLandmarks[0];
-
-                        // Cleanup old meshes
-                        landmarkPoints.forEach(p => p.dispose());
-                        landmarkLines.forEach(l => l.dispose());
-                        landmarkPoints = [];
-                        landmarkLines = [];
-
-                        // Create landmark spheres
-                        for (let i = 0; i < landmarks.length; i++) {
-                            const lm = landmarks[i];
-                            const x = -(lm.x - 0.5) * 10;
-                            const y = -(lm.y - 0.4) * 10;
-                            const z = lm.z * 30;
-
-                            const sphere = BABYLON.MeshBuilder.CreateSphere("lm_" + i, { diameter: 0.05 }, scene);
-                            sphere.position = new BABYLON.Vector3(x, y, z);
-
-                            const mat = new BABYLON.StandardMaterial("lmMat", scene);
-                            mat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
-                            sphere.material = mat;
-
-                            landmarkPoints.push(sphere);
-                        }
-
-                        // Optional: draw connecting lines between some points
-                        const connections = [
-                            [33, 133], // left eye
-                            [362, 263], // right eye
-                            [10, 152], // forehead to chin
-                            [234, 454], // cheek to cheek
-                        ];
-
-                        connections.forEach(([a, b]) => {
-                            const pa = landmarks[a];
-                            const pb = landmarks[b];
-
-                            const line = BABYLON.MeshBuilder.CreateLines("line_" + a + "_" + b, {
-                                points: [
-                                    new BABYLON.Vector3(-(pa.x - 0.5) * 10, -(pa.y - 0.4) * 10, pa.z * 30),
-                                    new BABYLON.Vector3(-(pb.x - 0.5) * 10, -(pb.y - 0.4) * 10, pb.z * 30)
-                                ]
-                            }, scene);
-
-                            line.color = new BABYLON.Color3(0, 1, 0); // Green
-                            landmarkLines.push(line);
-                        });
-
-                        // ✅ Now you can clearly see if the face is tracking correctly in 3D
-                    }
-                });
-
+                
                 //-------------------------------------------------------------------------------
 
                 occluderSphere.position.set(x_oc, y_oc + 0.5, z);
@@ -310,7 +271,7 @@
                         correctedPitch,    // X-axis
                         -correctedRoll     // Z-axis (flip for Babylon)
                     );*/
-
+                    
                     const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
                         BABYLON.Tools.ToRadians((yawDeg + 90)),  // Yaw
                         BABYLON.Tools.ToRadians(-(pitchDeg + 90)),               // Pitch
