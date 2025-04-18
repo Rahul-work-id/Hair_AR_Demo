@@ -205,12 +205,12 @@
                 const y_oc = -(forehead.y - 0.4) * 10;
                 const z_oc = forehead.z * 30;
 
-                occluderSphere.position.set(x_oc, y_oc + 0.5, z_oc);
+                occluderSphere.position.set(x_oc, y_oc + 0.5, z);
 
                 occluderSphere.isVisible = true;
                 occluderSphere.renderingGroupId = 0;
                 if (hat) {
-                    hat.position.set(hatX, hatY + 0.3, hatZ);
+                    hat.position.set(hatX, hatY + 0.3, z);
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
 
