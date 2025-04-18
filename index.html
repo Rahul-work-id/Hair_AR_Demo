@@ -107,7 +107,8 @@
             maxNumFaces: 1,
             refineLandmarks: true,
             minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            minTrackingConfidence: 0.5,
+            selfieMode: true
         });
 
         let occluder;
@@ -176,9 +177,10 @@
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const landmarks = results.multiFaceLandmarks[0];
 
-                const forehead = landmarks[10];
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
+                const forehead = landmarks[10];
+                const chin = landmarks[152];
 
                 const x = -(forehead.x - 0.5) * 10;
                 const y = -(forehead.y - 0.5) * 10;
@@ -208,14 +210,11 @@
                     hat.renderingGroupId = 1;
 
                     const scaleFactor = eyeDist / baseEyeDist;
-                    hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
+                    hat.scaling.set(scaleFactor/2, scaleFactor/2, scaleFactor/2);
 
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
-                    const leftEye = landmarks[33];
-                    const rightEye = landmarks[263];
-                    const forehead = landmarks[10];
-                    const chin = landmarks[152];
+                   
 
                     // --- ROTATION ESTIMATION ---
 
