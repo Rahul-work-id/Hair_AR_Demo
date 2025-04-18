@@ -245,7 +245,7 @@
                     const correctedRoll = rollRad; // Already fine
 
                     const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
-                        -correctedYaw,     // Y-axis (inverted for Babylon)
+                        correctedYaw,     // Y-axis (inverted for Babylon)
                         correctedPitch,    // X-axis
                         -correctedRoll     // Z-axis (flip for Babylon)
                     );
