@@ -199,7 +199,7 @@
                 // Update sphere positions
                 for (let i = 0; i < landmarkSpheres.length; i++) {
                     const lm = landmarks[i];
-                    const x = -(lm.x - 0.5) * 10;
+                    const x = (lm.x - 0.5) * 10;
                     const y = -(lm.y - 0.5) * 10;
                     const z = (lm.z + 0.5) * 10;
 
@@ -238,10 +238,10 @@
 
                 //-------------------------------------------------------------------------------
 
-                occluderSphere.position.set(x_oc, y_oc + 0.5, z);
+                //occluderSphere.position.set(x_oc, y_oc + 0.5, z);
 
-                occluderSphere.isVisible = true;
-                occluderSphere.renderingGroupId = 0;
+                //occluderSphere.isVisible = true;
+                //occluderSphere.renderingGroupId = 0;
                 if (hat) {
                     hat.position.set(hatX, hatY + 0.3, z);
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
