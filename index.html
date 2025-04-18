@@ -236,7 +236,7 @@
                     const hatRotZ = BABYLON.Tools.ToDegrees(hat.rotation.z).toFixed(2);
 
                     const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
-                        BABYLON.Tools.ToRadians(-(yawDeg + 90)),  // Yaw
+                        BABYLON.Tools.ToRadians((yawDeg + 90)),  // Yaw
                         BABYLON.Tools.ToRadians(-(pitchDeg + 90)),               // Pitch
                         BABYLON.Tools.ToRadians(-rollDeg)               // Roll
                     );
@@ -257,7 +257,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;Y: ${hat.position.y}°<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;Z: ${hat.position.z}°<br>
                         🎩 Hat Rotation:<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;X: ${hatRotX}°, Y: ${hatRotY}°, Z: ${hatRotZ}°
+                        &nbsp;&nbsp;&nbsp;&nbsp;X: ${hat.rotationQuaternion.x}°, Y: ${hat.rotationQuaternion.y}°, Z: ${hat.rotationQuaternion.z}°
                          `;
                     document.getElementById('debug').innerHTML = debugText;
 
