@@ -99,15 +99,18 @@
             face = meshes[0];
             face.position.z = 1;
             face.scaling.set(1, 1, 1);
+            const occluderMaterial = new BABYLON.PBRMaterial("")
             face.getChildMeshes().forEach(m => {
                 if (m.material) {
-                    m.material.alpha = 1.0;
+                    m.material = occluderMaterial;
+                    m.material.alpha = 0.2;
                     m.material.transparencyMode = BABYLON.Material.MATERIAL_OPAQUE;
                 }
             });
-
+            occluderMaterial.disableColorWrite = true;
+            occluderMaterial.needDepthPrePass = true;
             //face.isOccluded = true;
-            face.renderingGroupId = 1; // Render after occluder (which is 0)
+            face.renderingGroupId = 0; // Render after occluder (which is 0)
         });
 
 
@@ -329,7 +332,7 @@
                 //occluderSphere.isVisible = true;
                 //occluderSphere.renderingGroupId = 0;
 
-               
+
 
 
                 if (hat) {
@@ -340,7 +343,7 @@
                     const scaleFactor = (eyeDist / baseEyeDist) / .9;
                     hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
                     face.scaling.set(scaleFactor, scaleFactor, scaleFactor);
-                    
+
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
 
