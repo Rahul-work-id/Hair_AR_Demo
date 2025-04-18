@@ -98,7 +98,8 @@
         engine.runRenderLoop(() => scene.render());
 
         const videoElement = document.getElementById("video");
-
+        const videoWidth = videoElement.videoWidth;
+        const videoHeight = videoElement.videoHeight;
         const faceMesh = new FaceMesh({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
         });
@@ -322,8 +323,8 @@
             onFrame: async () => {
                 await faceMesh.send({ image: videoElement });
             },
-            width: 640,
-            height: 480
+            width: videoWidth,
+            height: videoHeight
         });
 
         cameraUtils.start();
