@@ -82,7 +82,7 @@
         BABYLON.SceneLoader.ImportMesh("", "./", "hat.glb", scene, (meshes) => {
             hat = meshes[0];
             hat.position.z = 1;
-            hat.scaling.set(1.25, 1.25, 1.25);
+            hat.scaling.set(1, 1, 1);
             hat.getChildMeshes().forEach(m => {
                 if (m.material) {
                     m.material.alpha = 1.0;
@@ -181,7 +181,9 @@
             for (let i = 0; i < count; i++) {
                 const sphere = BABYLON.MeshBuilder.CreateSphere(`lm_${i}`, { diameter: 0.5 }, scene);
                 const mat = new BABYLON.PBRMaterial("")//new BABYLON.StandardMaterial(`mat_${i}`, scene);
-                mat.diffuseColor = new BABYLON.Color3(0, 1, 0); // green
+                //mat.diffuseColor = new BABYLON.Color3(0, 1, 0); // green
+                mat.disableColorWrite = true
+                mat.needDepthPrePass = true
                 sphere.material = mat;
                 sphere.isPickable = false;
                 spheres.push(sphere);
@@ -229,7 +231,7 @@
 
                 const baseEyeDist = 0.06;
                 const depthZ = (leftEye.z + rightEye.z) / 2;
-                const z = (depthZ * 30) ;  // scale to Babylon units
+                const z = (depthZ * 30);  // scale to Babylon units
 
 
                 const x_oc = -(forehead.x - 0.5) * 10;
@@ -249,7 +251,7 @@
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
 
-                    const scaleFactor = (eyeDist / baseEyeDist)/0.75;
+                    const scaleFactor = (eyeDist / baseEyeDist) / 1.5;
                     hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
 
                     //sphere.position.set(x, y + 0.6, z);
