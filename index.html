@@ -205,8 +205,8 @@
                 occluderSphere.isVisible = true;
                 occluderSphere.renderingGroupId = 0;
                 if (hat) {
-                    //hat.position.set(x, y + 0.3, z);
-                    hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
+                    hat.position.set(x, y + 0.3, z);
+                    //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
 
                     //const scaleFactor = eyeDist / baseEyeDist;
@@ -241,8 +241,8 @@
                         BABYLON.Tools.ToRadians(-rollDeg)               // Roll
                     );
 
-                    //hat.rotationQuaternion = quaternion;
-                    hat.rotationQuaternion = BABYLON.Quaternion.Slerp(hat.rotationQuaternion, quaternion, 0.2);
+                    hat.rotationQuaternion = quaternion;
+                    //hat.rotationQuaternion = BABYLON.Quaternion.Slerp(hat.rotationQuaternion, quaternion, 0.2);
 
                     // 🖥️ Debug info
                     const debugText = `
