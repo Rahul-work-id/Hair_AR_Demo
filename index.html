@@ -219,8 +219,8 @@
                 const hatZ = (faceCenter.z + 0.5) * 10;
 
                 const x = (forehead.x - 0.5) * 10;
-                const y = (forehead.y - 0.0) * 10;
-                const zf = (forehead.z + 0.5) * 3;
+                const y = -(forehead.y - 0.5) * 10;
+                const zf = -(forehead.z + 0.5) * 3;
 
                 const dx = rightEye.x - leftEye.x;
                 const dy = rightEye.y - leftEye.y;
@@ -229,7 +229,7 @@
 
                 const baseEyeDist = 0.06;
                 const depthZ = (leftEye.z + rightEye.z) / 2;
-                const z = (depthZ * 30) + 1;  // scale to Babylon units
+                const z = (depthZ * 30) ;  // scale to Babylon units
 
 
                 const x_oc = -(forehead.x - 0.5) * 10;
@@ -245,12 +245,12 @@
                 //occluderSphere.isVisible = true;
                 //occluderSphere.renderingGroupId = 0;
                 if (hat) {
-                    hat.position.set(x, y + 0.3, z);
+                    hat.position.set(x, y + 0.3, zf);
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
 
-                    const scaleFactor = eyeDist / baseEyeDist;
-                    hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
+                    //const scaleFactor = eyeDist / baseEyeDist;
+                    //hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
 
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
