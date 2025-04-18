@@ -244,17 +244,17 @@
                     const correctedPitch = pitchRad + BABYLON.Tools.ToRadians(90);
                     const correctedRoll = rollRad; // Already fine
 
-                    const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
+                    /*const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
                         correctedYaw,     // Y-axis (inverted for Babylon)
                         correctedPitch,    // X-axis
                         -correctedRoll     // Z-axis (flip for Babylon)
-                    );
+                    );*/
                     
-                    /*const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
+                    const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
                         BABYLON.Tools.ToRadians((yawDeg + 90)),  // Yaw
                         BABYLON.Tools.ToRadians(-(pitchDeg + 90)),               // Pitch
                         BABYLON.Tools.ToRadians(rollDeg)               // Roll
-                    );*/
+                    );
 
                     hat.rotationQuaternion = quaternion;
                     //hat.rotationQuaternion = BABYLON.Quaternion.Slerp(hat.rotationQuaternion, quaternion, 0.2);
