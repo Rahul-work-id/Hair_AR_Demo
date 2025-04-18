@@ -241,7 +241,6 @@
                     mat.diffuseColor = new BABYLON.Color3(0, 0.8, 1);
                     mat.alpha = 0.5;
                     mat.backFaceCulling = false;
-                    mat.wireframe = false;
 
                     dynamicFaceMesh.material = mat;
 
@@ -250,19 +249,17 @@
                 }
 
                 // Step 2: Update vertex positions every frame
-                const positions = [];
-
-                for (let i = 0; i < landmarks.length; i++) {
-                    const lm = landmarks[i];
-                    const x = (lm.x - 0.5) * scale;
-                    const y = -(lm.y - 0.5) * scale;
-                    const z = -lm.z * scale;
-
-                    positions.push(x, y, z);
-                }
+                const positions = landmarks.map(lm => [
+                    (lm.x - 0.5) * scale,
+                    -(lm.y - 0.5) * scale,
+                    -lm.z * scale
+                ]).flat();
 
                 dynamicVertexData.positions = positions;
-                dynamicVertexData.applyToMesh(dynamicFaceMesh, true); // true = update
+                dynamicVertexData.normals = [];
+                BABYLON.VertexData.ComputeNormals(positions, TRIANGULATION, dynamicVertexData.normals);
+                dynamicVertexData.applyToMesh(dynamicFaceMesh, true);
+
 
 
                 const leftEye = landmarks[33];
