@@ -199,11 +199,9 @@
                 // Update sphere positions
                 for (let i = 0; i < landmarkSpheres.length; i++) {
                     const lm = landmarks[i];
-                    const scale = 15; // Try different values like 10, 15 depending on scene scale
-                    const scaleX = 6;
-                    const scaleY = scaleX * (480 / 640); // maintain aspect ratios
-                    const x = (lm.x - 0.5) * scaleX;
-                    const y = -(lm.y - 0.5) * scaleY;
+                    const scale = 12; // Try different values like 10, 15 depending on scene scale
+                    const x = (lm.x - 0.5) * scale;
+                    const y = -(lm.y - 0.5) * scale;
                     const z = -(lm.z) * scale; // Negative to push into screen (depth)
 
                     landmarkSpheres[i].position.set(x, y, z);
