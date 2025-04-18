@@ -240,7 +240,7 @@
                     const hatRotY = BABYLON.Tools.ToDegrees(hat.rotation.y).toFixed(2);
                     const hatRotZ = BABYLON.Tools.ToDegrees(hat.rotation.z).toFixed(2);
 
-                    const correctedYaw = yawRad + BABYLON.Tools.ToRadians(90);
+                    const correctedYaw = yawRad - BABYLON.Tools.ToRadians(90);
                     const correctedPitch = pitchRad - BABYLON.Tools.ToRadians(90);
                     const correctedRoll = rollRad; // Already fine
 
