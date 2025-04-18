@@ -191,6 +191,27 @@
             return spheres;
         }
 
+
+
+        // Paste this once at the top or inside your JS setup
+        const TRIANGULATION = [
+            127, 34, 139, 11, 0, 37, 232, 231, 120, 72, 37, 39, 128, 121, 47, 232, 121, 128, 104, 69, 67, 175, 171, 148, 157, 154, 155, 118, 50, 101,
+            73, 39, 40, 9, 151, 108, 48, 115, 131, 194, 204, 211, 74, 40, 185, 80, 42, 183, 40, 92, 186, 230, 229, 118, 202, 212, 214, 83, 18, 17,
+            76, 61, 146, 160, 29, 30, 56, 157, 173, 106, 204, 194, 135, 214, 192, 203, 165, 98, 21, 71, 68, 105, 52, 53, 65, 46, 70, 156, 78, 62, 96,
+            48, 115, 131, 31, 228, 229, 228, 31, 111, 195, 3, 51, 134, 44, 48, 64, 45, 36, 203, 142, 129, 230, 196, 122, 131, 217, 122, 128, 217,
+            222, 131, 134, 11, 37, 98, 192, 212, 214, 223, 230, 120, 110, 228, 229, 231, 120, 203, 98, 160, 161, 246, 33, 7, 163, 144, 145, 153,
+            154, 155, 133, 243, 190, 24, 110, 163, 7, 227, 174, 236, 237, 112, 26, 22, 23, 24, 110, 25, 33, 244, 113, 225, 224, 223, 222, 221, 189,
+            190, 243, 112, 26, 22, 62, 96, 104, 55, 65, 51, 134, 44, 42, 184, 183, 40, 92, 186, 81, 82, 38, 39, 37, 72, 42, 183, 184, 105, 66, 107,
+            55, 8, 76, 8, 64, 45, 76, 62, 78, 191, 80, 81, 38, 39, 40, 185, 72, 73, 41, 38, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14,
+            87, 178, 88, 95, 185, 40, 92, 186, 84, 17, 18, 83, 182, 181, 90, 91, 181, 91, 90, 89, 179, 180, 90, 91, 89, 180, 179, 78, 62, 96, 77, 57,
+            58, 172, 136, 150, 149, 176, 148, 152, 173, 157, 154, 58, 173, 155, 60, 46, 53, 64, 45, 23, 22, 26, 112, 233, 232, 128, 217, 218, 199,
+            200, 201, 208, 209, 210, 151, 108, 109, 150, 136, 172, 67, 69, 108, 17, 84, 181, 186, 92, 40
+        ];
+
+        let dynamicFaceMesh = null;
+        let dynamicVertexData = null;
+
+
         // Create once at startup
         landmarkSpheres = createLandmarkSpheres(scene, 468);
 
@@ -209,6 +230,40 @@
 
                     landmarkSpheres[i].position.set(x, y, z);
                 }
+
+                const scale = 12;
+
+                // Step 1: Initialize the mesh ONCE
+                if (!dynamicFaceMesh) {
+                    dynamicFaceMesh = new BABYLON.Mesh("dynamicFaceMesh", scene);
+
+                    const mat = new BABYLON.StandardMaterial("faceMat", scene);
+                    mat.diffuseColor = new BABYLON.Color3(0, 0.8, 1);
+                    mat.alpha = 0.5;
+                    mat.backFaceCulling = false;
+                    mat.wireframe = false;
+
+                    dynamicFaceMesh.material = mat;
+
+                    dynamicVertexData = new BABYLON.VertexData();
+                    dynamicVertexData.indices = TRIANGULATION;
+                }
+
+                // Step 2: Update vertex positions every frame
+                const positions = [];
+
+                for (let i = 0; i < landmarks.length; i++) {
+                    const lm = landmarks[i];
+                    const x = (lm.x - 0.5) * scale;
+                    const y = -(lm.y - 0.5) * scale;
+                    const z = -lm.z * scale;
+
+                    positions.push(x, y, z);
+                }
+
+                dynamicVertexData.positions = positions;
+                dynamicVertexData.applyToMesh(dynamicFaceMesh, true); // true = update
+
 
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
