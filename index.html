@@ -160,9 +160,9 @@
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.PBRMaterial("")
-        
-        
-        
+
+
+
         occluderSphere.material = occluderMaterial;
         occluderMaterial.disableColorWrite = true
         occluderMaterial.needDepthPrePass = true
@@ -191,8 +191,8 @@
 
                 const baseEyeDist = 0.06;
                 const depthZ = (leftEye.z + rightEye.z) / 2;
-                const z = (depthZ * 30)+1;  // scale to Babylon units
-                     
+                const z = (depthZ * 30) + 1;  // scale to Babylon units
+
 
                 const x_oc = -(forehead.x - 0.5) * 10;
                 const y_oc = -(forehead.y - 0.4) * 10;
@@ -203,8 +203,13 @@
                 occluderSphere.isVisible = true;
                 occluderSphere.renderingGroupId = 0;
                 if (hat) {
-                    hat.position.set(x, y + 0.3, z);
+                    //hat.position.set(x, y + 0.3, z);
+                    hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
+
+                    const scaleFactor = eyeDist / baseEyeDist;
+                    hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
+
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
                     const leftEye = landmarks[33];
@@ -237,8 +242,8 @@
                         BABYLON.Tools.ToRadians(-rollDeg)               // Roll
                     );
 
-                    hat.rotationQuaternion = quaternion;
-
+                    //hat.rotationQuaternion = quaternion;
+                    hat.rotationQuaternion = BABYLON.Quaternion.Slerp(hat.rotationQuaternion, quaternion, 0.2);
 
                     // 🖥️ Debug info
                     const debugText = `
