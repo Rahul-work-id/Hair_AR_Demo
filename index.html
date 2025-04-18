@@ -215,6 +215,45 @@
         // Create once at startup
         landmarkSpheres = createLandmarkSpheres(scene, 468);
 
+        function updateFaceMesh(scene, landmarks) {
+            const scale = 12;
+
+            // Create the mesh only once
+            if (!dynamicFaceMesh) {
+                dynamicFaceMesh = new BABYLON.Mesh("dynamicFaceMesh", scene);
+
+                const mat = new BABYLON.StandardMaterial("faceMat", scene);
+                mat.diffuseColor = new BABYLON.Color3(0, 0.8, 1);
+                mat.alpha = 0.5;
+                mat.backFaceCulling = false;
+                dynamicFaceMesh.material = mat;
+
+                // Prepare initial vertex data
+                dynamicVertexData = new BABYLON.VertexData();
+                dynamicVertexData.indices = TRIANGULATION;
+            }
+
+            // Convert landmarks into positions array
+            const positions = [];
+            for (let i = 0; i < landmarks.length; i++) {
+                const lm = landmarks[i];
+                const x = (lm.x - 0.5) * scale;
+                const y = -(lm.y - 0.5) * scale;
+                const z = -lm.z * scale;
+                positions.push(x, y, z);
+            }
+
+            // Recalculate normals
+            const normals = [];
+            BABYLON.VertexData.ComputeNormals(positions, TRIANGULATION, normals);
+
+            // Update vertex data
+            dynamicVertexData.positions = positions;
+            dynamicVertexData.normals = normals;
+
+            // Apply to mesh
+            dynamicVertexData.applyToMesh(dynamicFaceMesh, true);
+        }
 
         faceMesh.onResults(results => {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
@@ -233,32 +272,7 @@
 
                 const scale = 12;
 
-                // Step 1: Initialize the mesh ONCE
-                if (!dynamicFaceMesh) {
-                    dynamicFaceMesh = new BABYLON.Mesh("dynamicFaceMesh", scene);
-
-                    const mat = new BABYLON.StandardMaterial("faceMat", scene);
-                    mat.diffuseColor = new BABYLON.Color3(0, 0.8, 1);
-                    mat.alpha = 0.5;
-                    mat.backFaceCulling = false;
-
-                    dynamicFaceMesh.material = mat;
-
-                    dynamicVertexData = new BABYLON.VertexData();
-                    dynamicVertexData.indices = TRIANGULATION;
-                }
-
-                // Step 2: Update vertex positions every frame
-                const positions = landmarks.map(lm => [
-                    (lm.x - 0.5) * scale,
-                    -(lm.y - 0.5) * scale,
-                    -lm.z * scale
-                ]).flat();
-
-                dynamicVertexData.positions = positions;
-                dynamicVertexData.normals = [];
-                BABYLON.VertexData.ComputeNormals(positions, TRIANGULATION, dynamicVertexData.normals);
-                dynamicVertexData.applyToMesh(dynamicFaceMesh, true);
+                updateFaceMesh(scene, landmarks);
 
 
 
