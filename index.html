@@ -165,8 +165,8 @@
 
 
         occluderSphere.material = occluderMaterial;
-        occluderMaterial.disableColorWrite = true
-        occluderMaterial.needDepthPrePass = true
+        //occluderMaterial.disableColorWrite = true
+        //occluderMaterial.needDepthPrePass = true
         occluderSphere.renderingGroupId = 0;
 
         //------------------------------------------------------------------------------------------------
@@ -205,7 +205,7 @@
 
                     landmarkSpheres[i].position.set(x, y, z);
                 }
-                
+
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
                 const forehead = landmarks[10];
