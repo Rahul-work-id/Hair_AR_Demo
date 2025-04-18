@@ -179,8 +179,8 @@
         function createLandmarkSpheres(scene, count) {
             const spheres = [];
             for (let i = 0; i < count; i++) {
-                const sphere = BABYLON.MeshBuilder.CreateSphere(`lm_${i}`, { diameter: 0.1 }, scene);
-                const mat = new BABYLON.StandardMaterial(`mat_${i}`, scene);
+                const sphere = BABYLON.MeshBuilder.CreateSphere(`lm_${i}`, { diameter: 0.5 }, scene);
+                const mat = new BABYLON.PBRMaterial("")//new BABYLON.StandardMaterial(`mat_${i}`, scene);
                 mat.diffuseColor = new BABYLON.Color3(0, 1, 0); // green
                 sphere.material = mat;
                 sphere.isPickable = false;
