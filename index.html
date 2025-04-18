@@ -182,6 +182,11 @@
                 const forehead = landmarks[10];
                 const chin = landmarks[152];
 
+                const faceCenter = landmarks[10]; // forehead (or average eyes + forehead for center)
+                const hatX = -(faceCenter.x - 0.5) * 10;
+                const hatY = -(faceCenter.y - 0.5) * 10 + 0.5;
+                const hatZ = (faceCenter.z + 0.5) * 10;
+
                 const x = (forehead.x - 0.5) * 10;
                 const y = (forehead.y - 0.25) * 10;
                 const zf = (forehead.z + 0.5) * 3;
@@ -205,7 +210,7 @@
                 occluderSphere.isVisible = true;
                 occluderSphere.renderingGroupId = 0;
                 if (hat) {
-                    hat.position.set(x, y + 0.3, z);
+                    hat.position.set(hatX, hatY + 0.3, hatZ);
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
 
@@ -214,7 +219,7 @@
 
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
-                   
+
 
                     // --- ROTATION ESTIMATION ---
 
@@ -235,11 +240,21 @@
                     const hatRotY = BABYLON.Tools.ToDegrees(hat.rotation.y).toFixed(2);
                     const hatRotZ = BABYLON.Tools.ToDegrees(hat.rotation.z).toFixed(2);
 
+                    const correctedYaw = yawRad - BABYLON.Tools.ToRadians(90);
+                    const correctedPitch = pitchRad + BABYLON.Tools.ToRadians(90);
+                    const correctedRoll = rollRad; // Already fine
+
                     const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
+                        -correctedYaw,     // Y-axis (inverted for Babylon)
+                        correctedPitch,    // X-axis
+                        -correctedRoll     // Z-axis (flip for Babylon)
+                    );
+                    
+                    /*const quaternion = BABYLON.Quaternion.RotationYawPitchRoll(
                         BABYLON.Tools.ToRadians((yawDeg + 90)),  // Yaw
                         BABYLON.Tools.ToRadians(-(pitchDeg + 90)),               // Pitch
                         BABYLON.Tools.ToRadians(rollDeg)               // Roll
-                    );
+                    );*/
 
                     hat.rotationQuaternion = quaternion;
                     //hat.rotationQuaternion = BABYLON.Quaternion.Slerp(hat.rotationQuaternion, quaternion, 0.2);
