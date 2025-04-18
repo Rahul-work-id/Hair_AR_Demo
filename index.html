@@ -304,7 +304,7 @@
 
                 const x = (forehead.x - 0.5) * 10;
                 const y = -(forehead.y - 0.5) * 10;
-                const zf = -(forehead.z - 0.25) * 10;
+                const zf = -(forehead.z - 0.5) * 10;
 
                 const dx = rightEye.x - leftEye.x;
                 const dy = rightEye.y - leftEye.y;
@@ -336,10 +336,11 @@
                     hat.position.set(x, y, zf);
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
-
+                    face.position.set(x, y, zf);
                     const scaleFactor = (eyeDist / baseEyeDist) / .9;
                     hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
-                    face.position.set(x, y, zf);
+                    face.scaling.set(scaleFactor, scaleFactor, scaleFactor);
+                    
                     //sphere.position.set(x, y + 0.6, z);
                     // LANDMARKS
 
