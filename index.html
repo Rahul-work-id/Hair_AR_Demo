@@ -340,7 +340,7 @@
                     //hat.position = BABYLON.Vector3.Lerp(hat.position, new BABYLON.Vector3(x, y + 0.3, z), 0.2);
                     hat.renderingGroupId = 1;
                     face.position.set(x, y, zf);
-                    const scaleFactor = (eyeDist / baseEyeDist) / .9;
+                    const scaleFactor = (eyeDist / baseEyeDist) / .5;
                     hat.scaling.set(scaleFactor, scaleFactor, scaleFactor);
                     face.scaling.set(scaleFactor, scaleFactor, scaleFactor);
 
