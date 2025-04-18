@@ -157,7 +157,7 @@
         //const sphere = BABYLON.MeshBuilder.CreateSphere("marker", { diameter: 1 }, scene);
 
         //-----------------------------------------occluder-------------------------------------------------
-        const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2 }, scene);
+        /*const occluderSphere = BABYLON.MeshBuilder.CreateSphere("occluderSphere", { diameter: 2 }, scene);
         occluderSphere.isVisible = true;
 
         const occluderMaterial = new BABYLON.PBRMaterial("")
@@ -165,13 +165,13 @@
 
 
         occluderSphere.material = occluderMaterial;
-        //occluderMaterial.disableColorWrite = true
-        //occluderMaterial.needDepthPrePass = true
-        occluderSphere.renderingGroupId = 0;
+        occluderMaterial.disableColorWrite = true
+        occluderMaterial.needDepthPrePass = true
+        occluderSphere.renderingGroupId = 0;*/
 
         //------------------------------------------------------------------------------------------------
         // Move to foreground rendering group
-        occluderSphere.renderingGroupId = 0;
+        //occluderSphere.renderingGroupId = 0;
 
         let landmarkSpheres = [];
 
@@ -205,7 +205,7 @@
 
                     landmarkSpheres[i].position.set(x, y, z);
                 }
-
+                
                 const leftEye = landmarks[33];
                 const rightEye = landmarks[263];
                 const forehead = landmarks[10];
